@@ -1378,8 +1378,8 @@
             if (monthlyTitle) monthlyTitle.textContent = `월간 급여 (${selectedYear}년 1월~${selectedYear === currentYear ? '현재' : '12월'})`;
             if (yearlyTitle) yearlyTitle.textContent = `연간 누적 추이 (${selectedYear}년)`;
             
-            // === 월간 차트 (개선된 디자인 + 누적 금액 표시) ===
-            let monthlyHTML = '<div style="display: flex; align-items: flex-end; gap: 10px; height: 200px; border-bottom: 3px solid #667eea; padding-bottom: 12px; background: linear-gradient(to top, rgba(102,126,234,0.05) 0%, transparent 100%);">';
+            // CSS 기반 월간 차트 생성 (누적 금액 포함)
+            let monthlyHTML = '<div style="display: flex; align-items: flex-end; gap: 8px; height: 180px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">';
             
             const monthlyData = [];
             let monthCumulative = 0;
@@ -1390,6 +1390,7 @@
                 monthCumulative += total;
                 monthlyData.push({ month, total, cumulative: monthCumulative });
             }
+            }
             
             const maxMonthly = Math.max(...monthlyData.map(d => d.total), 1);
             
@@ -1397,21 +1398,17 @@
                 const heightPct = (total / maxMonthly * 100);
                 const manwon = Math.round(total / 10000);
                 let barColor = '#10b981'; // green
-                let barIcon = '🟢';
-                if (manwon >= 900) { barColor = '#dc2626'; barIcon = '🔴'; }
-                else if (manwon >= 850) { barColor = '#f97316'; barIcon = '🟠'; }
-                else if (manwon >= 800) { barColor = '#fbbf24'; barIcon = '🟡'; }
+                if (manwon >= 900) barColor = '#dc2626'; // red
+                else if (manwon >= 850) barColor = '#f97316'; // orange
+                else if (manwon >= 800) barColor = '#fbbf24'; // yellow
                 
                 monthlyHTML += `
                     <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;">
-                        <div style="font-size: 10px; font-weight: 700; color: ${barColor};">${barIcon}</div>
-                        <div style="font-size: 12px; font-weight: 700; color: #1f2937;">${manwon}만</div>
-                        <div style="width: 100%; height: ${heightPct}%; background: linear-gradient(to top, ${barColor}, ${barColor}dd); border-radius: 6px 6px 0 0; transition: all 0.3s; cursor: pointer; position: relative; box-shadow: 0 -2px 8px rgba(0,0,0,0.1);"
-                             onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 -4px 12px rgba(0,0,0,0.2)'" 
-                             onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 -2px 8px rgba(0,0,0,0.1)'"
-                             title="💰 ${month}월 총 지급액: ${formatCurrency(total)}원 (${manwon}만원)">
-                        </div>
-                        <div style="font-size: 11px; color: #6b7280; font-weight: 600;">${month}월</div>
+                        <div style="font-size: 11px; font-weight: 600; color: #374151;">${manwon}만</div>
+                        <div style="width: 100%; height: ${heightPct}%; background: ${barColor}; border-radius: 4px 4px 0 0; transition: all 0.3s; cursor: pointer; position: relative;"
+                             onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"
+                             title="${month}월: ${formatCurrency(total)}원"></div>
+                        <div style="font-size: 10px; color: #6b7280;">${month}월</div>
                     </div>
                 `;
             });
@@ -1420,48 +1417,39 @@
             
             // 누적 총액 표시
             const monthTotalCumulative = monthlyData[monthlyData.length - 1]?.cumulative || 0;
-            monthlyHTML += '<div style="margin-top: 16px; padding: 12px; background: linear-gradient(135deg, #f3f4f6, #e5e7eb); border-radius: 8px; font-size: 12px; color: #374151; text-align: center; border-left: 4px solid #667eea;">';
-            monthlyHTML += '<div style="display: flex; justify-content: space-around; margin-bottom: 8px;">';
-            monthlyHTML += `<div><strong>📊 1월~${currentMonth}월 누적 총액:</strong> <span style="color: #667eea; font-size: 14px; font-weight: 700;">${formatCurrency(monthTotalCumulative)}원 (${Math.round(monthTotalCumulative/10000)}만원)</span></div>`;
+            monthlyHTML += '<div style="margin-top: 12px; padding: 10px; background: linear-gradient(135deg, #f3f4f6, #e5e7eb); border-radius: 8px; font-size: 11px; color: #374151; text-align: center; border-left: 4px solid #667eea;">';
+            monthlyHTML += `<div style="margin-bottom: 6px;"><strong>📊 1월~${currentMonth}월 누적 총액:</strong> <span style="color: #667eea; font-weight: 700;">${formatCurrency(monthTotalCumulative)}원</span></div>`;
+            monthlyHTML += '<div style="border-top: 1px solid #d1d5db; padding-top: 6px;">💰 색상 기준: 🟢정상(<800만) | 🟡양호(800-850) | 🟠주의(850-900) | 🔴경고(≥900만)</div>';
             monthlyHTML += '</div>';
-            monthlyHTML += '<div style="border-top: 1px solid #d1d5db; padding-top: 8px; margin-top: 8px;">';
-            monthlyHTML += '<strong>📊 색상 기준:</strong> 🟢 정상(<800만) | 🟡 양호(800-850만) | 🟠 주의(850-900만) | 🔴 경고(≥900만)';
-            monthlyHTML += '</div></div>';
             
             document.getElementById('monthlySimpleChart').innerHTML = monthlyHTML;
             
-            // === 연간 누적 차트 (SVG - 개선된 디자인) ===
+            // CSS 기반 연간 누적 차트 (SVG)
             const yearlyData = [];
             let cumulative = 0;
             for (let month = 1; month <= currentMonth; month++) {
-                const monthStr = `${selectedYear}-${String(month).padStart(2, '0')}`;
-                const monthPay = payments.filter(p => p.paymentDate && p.paymentDate.startsWith(monthStr));
-                cumulative += monthPay.reduce((sum, p) => sum + (p.netPay || 0), 0);
+                const monthStr = `${currentYear}-${String(month).padStart(2, '0')}`;
+                const monthPay = payments.filter(p => p.paymentDate.startsWith(monthStr));
+                cumulative += monthPay.reduce((sum, p) => sum + p.netPay, 0);
                 yearlyData.push({ month, cumulative });
             }
             
             const maxCumulative = Math.max(...yearlyData.map(d => d.cumulative), 1);
-            const chartWidth = 420;
-            const chartHeight = 180;
+            const chartWidth = 400;
+            const chartHeight = 160;
             const xStep = chartWidth / Math.max(currentMonth - 1, 1);
             
-            let yearlyHTML = `<svg width="100%" height="${chartHeight + 50}" viewBox="0 0 ${chartWidth + 20} ${chartHeight + 50}" style="overflow: visible;">`;
+            let yearlyHTML = `<svg width="100%" height="${chartHeight + 40}" viewBox="0 0 ${chartWidth} ${chartHeight + 40}" style="overflow: visible;">`;
             
-            // Background grid
-            yearlyHTML += `<rect x="0" y="0" width="${chartWidth}" height="${chartHeight}" fill="url(#gridPattern)" opacity="0.5"/>`;
-            yearlyHTML += `<defs><pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e5e7eb" stroke-width="0.5"/>
-            </pattern></defs>`;
-            
-            // Grid lines with values
+            // Grid lines
             for (let i = 0; i <= 4; i++) {
                 const y = (chartHeight / 4) * i;
                 const value = maxCumulative * (1 - i / 4);
-                yearlyHTML += `<line x1="0" y1="${y}" x2="${chartWidth}" y2="${y}" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="5,5"/>`;
-                yearlyHTML += `<text x="-5" y="${y + 5}" text-anchor="end" font-size="11" font-weight="600" fill="#6b7280">${Math.round(value / 10000)}만</text>`;
+                yearlyHTML += `<line x1="0" y1="${y}" x2="${chartWidth}" y2="${y}" stroke="#e5e7eb" stroke-width="1"/>`;
+                yearlyHTML += `<text x="-5" y="${y + 4}" text-anchor="end" font-size="10" fill="#9ca3af">${Math.round(value / 10000)}만</text>`;
             }
             
-            // Data path (line)
+            // Data path
             let pathData = '';
             const points = [];
             yearlyData.forEach((d, i) => {
@@ -1471,58 +1459,36 @@
                 pathData += `${i === 0 ? 'M' : 'L'} ${x},${y} `;
             });
             
-            // Gradient definitions
-            yearlyHTML += `<defs>
-                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-                    <stop offset="50%" style="stop-color:#667eea;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
-                </linearGradient>
-                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.4" />
-                    <stop offset="100%" style="stop-color:#667eea;stop-opacity:0.05" />
-                </linearGradient>
-            </defs>`;
+            yearlyHTML += `<path d="${pathData}" fill="none" stroke="#667eea" stroke-width="3" stroke-linecap="round"/>`;
             
-            // Area fill
+            // Gradient fill
+            yearlyHTML += `<defs><linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#667eea;stop-opacity:0.3" />
+                <stop offset="100%" style="stop-color:#667eea;stop-opacity:0.05" />
+            </linearGradient></defs>`;
             yearlyHTML += `<path d="${pathData} L ${(currentMonth - 1) * xStep},${chartHeight} L 0,${chartHeight} Z" fill="url(#areaGradient)"/>`;
             
-            // Line stroke
-            yearlyHTML += `<path d="${pathData}" fill="none" stroke="url(#lineGradient)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>`;
-            
-            // Data points with enhanced styling and cumulative amount labels
+            // Data points with cumulative amount labels
             points.forEach((p, idx) => {
-                const isLast = idx === points.length - 1;
                 const cumulativeManwon = Math.round(p.value / 10000);
+                const isLast = idx === points.length - 1;
                 
-                yearlyHTML += `<circle cx="${p.x}" cy="${p.y}" r="${isLast ? 7 : 5}" fill="${isLast ? '#8b5cf6' : '#667eea'}" stroke="white" stroke-width="3" style="cursor: pointer; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
-                    <title>📈 ${p.month}월까지 누적: ${formatCurrency(p.value)}원 (${cumulativeManwon}만원)</title>
+                yearlyHTML += `<circle cx="${p.x}" cy="${p.y}" r="${isLast ? 7 : 5}" fill="${isLast ? '#8b5cf6' : '#667eea'}" stroke="white" stroke-width="2" style="cursor: pointer;">
+                    <title>${p.month}월까지 누적: ${formatCurrency(p.value)}원 (${cumulativeManwon}만원)</title>
                 </circle>`;
                 
-                // Add cumulative amount label above each point
-                yearlyHTML += `<text x="${p.x}" y="${p.y - 12}" text-anchor="middle" font-size="10" font-weight="700" fill="#667eea">${cumulativeManwon}만</text>`;
-                
-                if (isLast) {
-                    yearlyHTML += `<text x="${p.x}" y="${p.y - 26}" text-anchor="middle" font-size="11" font-weight="700" fill="#8b5cf6">⬆ 최신</text>`;
-                }
+                // 누적 금액 라벨 추가
+                yearlyHTML += `<text x="${p.x}" y="${p.y - 10}" text-anchor="middle" font-size="9" font-weight="700" fill="#667eea">${cumulativeManwon}만</text>`;
             });
             
             // Month labels
             yearlyData.forEach((d, i) => {
                 const x = i * xStep;
-                yearlyHTML += `<text x="${x}" y="${chartHeight + 22}" text-anchor="middle" font-size="11" font-weight="600" fill="#374151">${d.month}월</text>`;
+                yearlyHTML += `<text x="${x}" y="${chartHeight + 20}" text-anchor="middle" font-size="10" fill="#6b7280">${d.month}월</text>`;
             });
             
             yearlyHTML += '</svg>';
-            
-            // Summary box
-            const finalCumulative = yearlyData[yearlyData.length - 1]?.cumulative || 0;
-            const avgMonthly = currentMonth > 0 ? Math.round(finalCumulative / currentMonth) : 0;
-            yearlyHTML += `<div style="margin-top: 16px; padding: 12px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 8px; border-left: 4px solid #10b981;">`;
-            yearlyHTML += `<div style="display: flex; justify-content: space-around; font-size: 12px; color: #065f46;">`;
-            yearlyHTML += `<div><strong>📈 누적 총액:</strong> ${formatCurrency(finalCumulative)}원</div>`;
-            yearlyHTML += `<div><strong>📊 월평균:</strong> ${formatCurrency(avgMonthly)}원</div>`;
-            yearlyHTML += `</div></div>`;
+            yearlyHTML += `<div style="margin-top: 8px; font-size: 11px; color: #6b7280; text-align: center;">📈 누적 총액: ${formatCurrency(yearlyData[yearlyData.length - 1]?.cumulative || 0)}원</div>`;
             
             document.getElementById('yearlySimpleChart').innerHTML = yearlyHTML;
             
@@ -1964,109 +1930,134 @@
 
         function exportToExcel() {
             try {
+                // Create workbook
                 const wb = XLSX.utils.book_new();
-                const selectedYear = document.getElementById('chartYearSelect')?.value || new Date().getFullYear();
-                const selectedMonth = new Date().getMonth() + 1;
                 
-                // === 급여대장 시트 (업로드된 양식과 동일한 구조) ===
-                const sheetData = [
-                    ['', `${selectedYear}년 ${String(selectedMonth).padStart(2, '0')}월 직원급여 지급대장`], // 1행
-                    ['초정 육전밀면 갈비탕 전문점'], // 2행
-                    [], // 3행
-                    // 4행: 메인 헤더
-                    ['', '사원번호', '성명', '주민등록번호', '은행', '계좌번호', '입사일', '구분', '부서', '약정시급', '연장근로\n시간', '급여 지급 항목', '', '', '', '', '급여 공제 항목', '', '', '', '', '', '기타공제', '', '', '실지급액'],
-                    // 5행: 서브 헤더
-                    ['', '', '', '', '', '', '', '', '', '', '', '과세항목', '', '', '', '', '4대 보험료', '', '', '', '세금', '', '기타공제', '', '', ''],
-                    // 6행: 상세 항목
-                    ['', '', '', '', '', '', '', '', '', '', '', '기본급', '상여', '연장근로수당', '주휴수당', '소계', '건강보험', '장기요양보험', '국민연금', '고용보험', '갑근세', '주민세', '가지급금', '기타', '소계', '']
+                // Sheet 1: 직원 목록 (개선된 디자인)
+                const empData = [
+                    ['🏢 초정 육전밀면 갈비탕 전문점 - 직원 명부'], 
+                    ['📅 작성일: ' + new Date().toISOString().split('T')[0] + ' | 📊 총 직원수: ' + employees.length + '명'], 
+                    [],
+                    ['📋 사번', '👤 이름', '🏪 부서', '⭐ 직급', '📞 전화번호', '💼 고용형태', '💰 시급', '📅 입사일', '📅 퇴사일', '🏦 은행명', '💳 계좌번호', '📝 메모']
                 ];
                 
-                // 데이터 행 추가
-                const monthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-                const monthPayments = payments.filter(p => p.paymentDate && p.paymentDate.startsWith(monthStr));
-                
-                let rowNum = 7;
-                monthPayments.forEach((p, idx) => {
-                    const e = employees.find(emp => emp.id === p.employeeId);
-                    if (!e) return;
-                    
-                    const insurance = calculate2026SocialInsurance(p.basePay, e.employmentType);
-                    const totalPay = p.basePay || 0;
-                    const totalDeductions = p.deductions || 0;
-                    const netPay = p.netPay || 0;
-                    
-                    // 4대보험료 계산
-                    const healthIns = insurance.healthInsurance || 0;
-                    const longTermCare = insurance.longTermCare || 0;
-                    const nationalPension = insurance.nationalPension || 0;
-                    const employmentIns = insurance.employmentInsurance || 0;
-                    
-                    const row = [
-                        '', // A열 빈칸
-                        e.employeeNumber || (idx + 1), // B: 사원번호
-                        e.name || '', // C: 성명
-                        '', // D: 주민등록번호 (비워둠)
-                        e.bankName || '', // E: 은행
-                        e.accountNumber || '', // F: 계좌번호
-                        e.hireDate || '', // G: 입사일
-                        e.employmentType || '', // H: 구분
-                        e.department || '', // I: 부서
-                        e.hourlyWage ? `₩${e.hourlyWage.toLocaleString()}` : '월정액', // J: 약정시급
-                        p.workHours || '', // K: 연장근로시간
-                        totalPay, // L: 기본급
-                        '', // M: 상여
-                        '', // N: 연장근로수당
-                        '', // O: 주휴수당
-                        totalPay, // P: 소계 (=SUM(L:O))
-                        healthIns, // Q: 건강보험
-                        longTermCare, // R: 장기요양보험
-                        nationalPension, // S: 국민연금
-                        employmentIns, // T: 고용보험
-                        0, // U: 갑근세
-                        0, // V: 주민세
-                        0, // W: 가지급금
-                        0, // X: 기타
-                        totalDeductions, // Y: 소계 (공제액 합계)
-                        netPay // Z: 실지급액
-                    ];
-                    
-                    sheetData.push(row);
-                    rowNum++;
+                employees.forEach(e => {
+                    const statusIcon = e.terminationDate ? '❌' : '✅';
+                    const typeIcon = e.employmentType === '정규직' ? '💼' : 
+                                    e.employmentType === '계약직' ? '📋' :
+                                    e.employmentType === '일용직' ? '🔨' : '💼';
+                    empData.push([
+                        e.employeeNumber || '',
+                        statusIcon + ' ' + (e.name || ''),
+                        e.department || '',
+                        e.position || '',
+                        e.phone || '',
+                        typeIcon + ' ' + (e.employmentType || ''),
+                        '₩' + (e.hourlyWage ? e.hourlyWage.toLocaleString() : '0'),
+                        e.hireDate || '',
+                        e.terminationDate || '-',
+                        e.bankName || '',
+                        e.accountNumber || '',
+                        e.notes || ''
+                    ]);
                 });
                 
-                // 빈 행 추가 (16행까지 채우기)
-                while (sheetData.length < 16) {
-                    sheetData.push(['']);
+                const ws1 = XLSX.utils.aoa_to_sheet(empData);
+                ws1['!cols'] = [{wch:10},{wch:14},{wch:14},{wch:12},{wch:16},{wch:14},{wch:14},{wch:12},{wch:12},{wch:16},{wch:22},{wch:22}];
+                XLSX.utils.book_append_sheet(wb, ws1, '📋 직원명부');
+                
+                // Sheet 2: 급여 내역 (개선된 디자인)
+                const totalPaySum = payments.reduce((sum, p) => sum + (p.netPay || 0), 0);
+                const payData = [
+                    ['💰 급여 지급 내역'],
+                    ['📅 작성일: ' + new Date().toISOString().split('T')[0] + ' | 💵 총 지급액: ₩' + totalPaySum.toLocaleString() + '원'], 
+                    [],
+                    ['📅 지급일', '📋 사번', '👤 직원명', '🏪 부서', '⭐ 직급', '💼 고용형태', '⏰ 근무시간', '💰 시급', '💵 기본급', '➖ 공제액', '✅ 실지급액', '🏢 사업용계좌', '👤 개인계좌', '🏦 은행명', '💳 계좌번호', '📝 메모']
+                ];
+                
+                payments.forEach(p => {
+                    const e = employees.find(emp => emp.id === p.employeeId);
+                    if (e) {
+                        const typeIcon = e.employmentType === '정규직' ? '💼' : 
+                                        e.employmentType === '계약직' ? '📋' :
+                                        e.employmentType === '일용직' ? '🔨' : '💼';
+                        payData.push([
+                            p.paymentDate || '',
+                            e.employeeNumber || '',
+                            e.name || '',
+                            e.department || '',
+                            e.position || '',
+                            typeIcon + ' ' + (e.employmentType || ''),
+                            (p.workHours || 0) + 'h',
+                            '₩' + ((e.hourlyWage || 0).toLocaleString()),
+                            '₩' + ((p.basePay || 0).toLocaleString()),
+                            '➖₩' + ((p.deductions || 0).toLocaleString()),
+                            '✅₩' + ((p.netPay || 0).toLocaleString()),
+                            '₩' + ((p.businessAccountPay || 0).toLocaleString()),
+                            '₩' + ((p.personalAccountPay || 0).toLocaleString()),
+                            p.bankName || '',
+                            p.accountNumber || '',
+                            p.notes || ''
+                        ]);
+                    }
+                });
+                
+                const ws2 = XLSX.utils.aoa_to_sheet(payData);
+                ws2['!cols'] = [{wch:12},{wch:10},{wch:12},{wch:13},{wch:11},{wch:14},{wch:12},{wch:14},{wch:16},{wch:16},{wch:18},{wch:16},{wch:16},{wch:16},{wch:22},{wch:22}];
+                XLSX.utils.book_append_sheet(wb, ws2, '💰 급여내역');
+                
+                // Sheet 3: 월간 통계 (개선된 디자인)
+                const statsData = [
+                    ['📊 월간 급여 통계 (2026년)'], 
+                    ['📅 작성일: ' + new Date().toISOString().split('T')[0] + ' | 📈 분석 기간: 1월~현재'], 
+                    [],
+                    ['📅 월', '👥 직원수', '⏰ 총 근무시간', '💰 총 지급액', '📊 평균 지급액', '📈 상태']
+                ];
+                
+                const currentYear = new Date().getFullYear();
+                const currentMonth = new Date().getMonth() + 1;
+                
+                for (let month = 1; month <= currentMonth; month++) {
+                    const monthStr = `${currentYear}-${String(month).padStart(2, '0')}`;
+                    const monthPay = payments.filter(p => p.paymentDate.startsWith(monthStr));
+                    const empIds = [...new Set(monthPay.map(p => p.employeeId))];
+                    const totalHours = monthPay.reduce((sum, p) => sum + p.workHours, 0);
+                    const totalPay = monthPay.reduce((sum, p) => sum + p.netPay, 0);
+                    const avgPay = empIds.length > 0 ? Math.round(totalPay / empIds.length) : 0;
+                    
+                    // 상태 표시 (900만원 이상: 🔴, 850-900: 🟠, 800-850: 🟡, 800 미만: 🟢)
+                    const manwon = totalPay / 10000;
+                    let statusIcon = '🟢';
+                    if (manwon >= 900) statusIcon = '🔴 경고!';
+                    else if (manwon >= 850) statusIcon = '🟠 주의';
+                    else if (manwon >= 800) statusIcon = '🟡 양호';
+                    else statusIcon = '🟢 정상';
+                    
+                    statsData.push([
+                        monthStr,
+                        empIds.length + '명',
+                        totalHours + 'h',
+                        '₩' + totalPay.toLocaleString(),
+                        '₩' + avgPay.toLocaleString(),
+                        statusIcon
+                    ]);
                 }
                 
-                // 합계 행 추가
-                const totalRow = ['', '합        계', '', '', '', '', '', '', '', '', ''];
-                const sumStart = 7;
-                const sumEnd = sumStart + monthPayments.length - 1;
+                const ws3 = XLSX.utils.aoa_to_sheet(statsData);
+                ws3['!cols'] = [{wch:12},{wch:12},{wch:16},{wch:18},{wch:18},{wch:14}];
+                XLSX.utils.book_append_sheet(wb, ws3, '📊 월간통계');
                 
-                // L열부터 Z열까지 합계
-                for (let col = 11; col <= 25; col++) {
-                    const colLetter = String.fromCharCode(65 + col); // A=65, L=76
-                    totalRow.push(`=SUM(${colLetter}${sumStart}:${colLetter}${sumEnd})`);
-                }
+                // Generate and download
+                const filename = `초정_급여대장_PREMIUM_${new Date().toISOString().split('T')[0]}.xlsx`;
+                XLSX.writeFile(wb, filename);
                 
-                sheetData.push(totalRow);
-                
-                // 안내 문구
-                sheetData.push([]);
-                sheetData.push([]);
-                sheetData.push(['', '* 현재 법정근로시간은 주40시간, 연장근로 12시간 한도 내 연장 가능(최대 52시간)']);
-                sheetData.push(['', '* 휴게 시간: 4시간 근무 시 30분 이상, 8시간 근무 시 1시간 이상 근무 도중 휴게시간 부여']);
-                
-                const ws = XLSX.utils.aoa_to_sheet(sheetData);
-                
-                // 열 너비 설정
-                ws['!cols'] = [
-                    {wch: 3},  // A: 빈칸
-                    {wch: 10}, // B: 사원번호
-                    {wch: 10}, // C: 성명
-                    {wch: 16}, // D: 주민등록번호
-                    {wch: 10}, // E: 은행
+                showToast('success', '📊 Excel 다운로드 완료', `💾 ${filename}\n📋 3개 시트: 직원명부, 급여내역, 월간통계\n✅ 아이콘 & 색상 구분 포함`);
+            } catch (error) {
+                console.error('Excel export error:', error);
+                showToast('error', '\ub0b4\ubcf4\ub0b4\uae30 \uc624\ub958', error.message);
+            }
+        }
+
         function generatePayslipPDF() {
             try {
                 const now = new Date();
