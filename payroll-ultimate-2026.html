@@ -892,28 +892,25 @@
         </section>
 
         <!-- Charts Section -->
-        <!-- CHART SECTION DISABLED FOR STABILITY -->
-        <section class="chart-section" style="display: none;">
+        <!-- SIMPLE CSS CHART SECTION -->
+        <section class="chart-section" style="display: block; padding: 20px; background: white; margin-bottom: 20px;">
             <h3 style="font-size: 24px; font-weight: 900; color: #1f2937; margin-bottom: 8px;">
                 <i class="fas fa-chart-line"></i> 급여 지급 현황
             </h3>
-            <p style="color: #6b7280; margin-bottom: 24px;">월간 및 연간 급여 지급 통계 및 경고 시스템</p>
+            <p style="color: #6b7280; margin-bottom: 24px;">월간 및 연간 급여 지급 통계 (CSS 기반 경량 차트)</p>
             
-            <div class="chart-grid">
-                <div class="chart-card">
-                    <h3><i class="fas fa-calendar-alt"></i> 월간 급여</h3>
-                    <canvas id="monthlyChart" style="height: 80px; max-height: 80px; width: 100%;"></canvas>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 20px;">
+                        <i class="fas fa-calendar-alt"></i> 월간 급여 (2026년 1월~현재)
+                    </h3>
+                    <div id="monthlySimpleChart"></div>
                 </div>
-                <div class="chart-card">
-                    <h3><i class="fas fa-calendar-week"></i> 연간 누적</h3>
-                    <canvas id="yearlyChart" style="height: 80px; max-height: 80px; width: 100%;"></canvas>
-                </div>
-            </div>
-
-            <div style="margin-top: 32px;">
-                <div class="chart-card">
-                    <h3><i class="fas fa-chart-pie"></i> 부서별 급여</h3>
-                    <canvas id="departmentChart" style="height: 80px; max-height: 80px; width: 100%;"></canvas>
+                <div style="background: #f9fafb; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="font-size: 16px; font-weight: 700; color: #1f2937; margin-bottom: 20px;">
+                        <i class="fas fa-chart-line"></i> 연간 누적 추이 (2026년)
+                    </h3>
+                    <div id="yearlySimpleChart"></div>
                 </div>
             </div>
         </section>
@@ -2164,20 +2161,21 @@
                 htmlContent += '</style>';
                 htmlContent += '</head><body>';
                 
-                htmlContent += '<div class="header">';
-                htmlContent += '<h1>\ucd08\uc815 \uc721\uc804\ubc00\uba74 \uac08\ube44\ud0d5 \uc804\ubb38\uc810</h1>';
-                htmlContent += `<p>${currentMonth} \uae09\uc5ec\uba85\uc138\uc11c</p>`;
-                htmlContent += `<p>\ubc1c\ud589\uc77c: ${new Date().toLocaleDateString('ko-KR')}</p>`;
-                htmlContent += '</div>';
-                
                 monthPayments.forEach((p, idx) => {
                     const emp = employees.find(e => e.id === p.employeeId);
                     if (!emp) return;
                     
+                    // 각 명세서마다 헤더 추가
+                    htmlContent += '<div class="header">';
+                    htmlContent += '<h1>초정 육전밀면 갈비탕 전문점</h1>';
+                    htmlContent += `<p>${currentMonth} 급여명세서</p>`;
+                    htmlContent += `<p>발행일: ${new Date().toLocaleDateString('ko-KR')}</p>`;
+                    htmlContent += '</div>';
+                    
                     const insurance = calculate2026SocialInsurance(p.basePay, emp.employmentType);
                     
                     htmlContent += `<div class="payslip">`;
-                    htmlContent += `<h2 style="margin-top: 0; color: #667eea;">\uae09\uc5ec\uba85\uc138\uc11c #${idx + 1}</h2>`;
+                    htmlContent += `<h2 style="margin-top: 0; color: #667eea;">급여명세서 #${idx + 1}</h2>`;
                     
                     htmlContent += '<div class="emp-info">';
                     htmlContent += `<div class="info-row"><span class="label">\uc9c1\uc6d0\uba85:</span><span class="value">${emp.name}</span></div>`;
