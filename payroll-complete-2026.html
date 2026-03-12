@@ -256,34 +256,34 @@
 
         /* Chart Container */
         .chart-section {
-            padding: 12px 16px;
+            padding: 8px 12px;
             background: white;
         }
 
         .chart-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .chart-card {
             background: #f9fafb;
-            padding: 12px;
+            padding: 8px;
             border-radius: 8px;
             box-shadow: var(--shadow-sm);
-            max-height: 180px;
+            max-height: 140px;
             overflow: hidden;
         }
 
         .chart-card h3 {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 700;
             color: #1f2937;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .example-section {
@@ -900,19 +900,19 @@
             
             <div class="chart-grid">
                 <div class="chart-card">
-                    <h3><i class="fas fa-calendar-alt"></i> 월간 급여 지급 현황 (2026년)</h3>
-                    <canvas id="monthlyChart" style="height: 120px; max-height: 120px;"></canvas>
+                    <h3><i class="fas fa-calendar-alt"></i> 월간 급여</h3>
+                    <canvas id="monthlyChart" style="height: 80px; max-height: 80px; width: 100%;"></canvas>
                 </div>
                 <div class="chart-card">
-                    <h3><i class="fas fa-calendar-week"></i> 연간 누적 급여 지급 추이</h3>
-                    <canvas id="yearlyChart" style="height: 120px; max-height: 120px;"></canvas>
+                    <h3><i class="fas fa-calendar-week"></i> 연간 누적</h3>
+                    <canvas id="yearlyChart" style="height: 80px; max-height: 80px; width: 100%;"></canvas>
                 </div>
             </div>
 
             <div style="margin-top: 32px;">
                 <div class="chart-card">
-                    <h3><i class="fas fa-chart-pie"></i> 이번 달 부서별 급여 비율</h3>
-                    <canvas id="departmentChart" style="height: 100px; max-height: 100px;"></canvas>
+                    <h3><i class="fas fa-chart-pie"></i> 부서별 급여</h3>
+                    <canvas id="departmentChart" style="height: 80px; max-height: 80px; width: 100%;"></canvas>
                 </div>
             </div>
         </section>
@@ -1416,8 +1416,8 @@
                         legend: { display: false },
                         title: {
                             display: true,
-                            text: '월간 급여',
-                            font: { size: 12, weight: 'bold' }
+                            text: '월간',
+                            font: { size: 10, weight: 'bold' }
                         },
                         tooltip: {
                             enabled: true,
@@ -1432,18 +1432,21 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                font: { size: 10 },
-                                maxTicksLimit: 5,
+                                font: { size: 8 },
+                                maxTicksLimit: 3,
                                 callback: function(value) {
-                                    if (value >= 10000000) return (value / 10000000) + '천만';
-                                    if (value >= 1000000) return (value / 1000000) + '백만';
-                                    return formatCurrency(value);
+                                    if (value >= 10000000) return (value / 10000000) + '천';
+                                    if (value >= 1000000) return (value / 1000000) + '백';
+                                    return '';
                                 }
                             }
                         },
                         x: {
                             ticks: {
-                                font: { size: 10 }
+                                font: { size: 8 },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 6
                             }
                         }
                     }
@@ -1540,8 +1543,8 @@
                         legend: { display: false },
                         title: {
                             display: true,
-                            text: '연간 누적',
-                            font: { size: 12, weight: 'bold' }
+                            text: '누적',
+                            font: { size: 10, weight: 'bold' }
                         },
                         tooltip: {
                             enabled: true,
@@ -1556,18 +1559,21 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                font: { size: 10 },
-                                maxTicksLimit: 5,
+                                font: { size: 8 },
+                                maxTicksLimit: 3,
                                 callback: function(value) {
-                                    if (value >= 10000000) return (value / 10000000) + '천만';
-                                    if (value >= 1000000) return (value / 1000000) + '백만';
-                                    return formatCurrency(value);
+                                    if (value >= 10000000) return (value / 10000000) + '천';
+                                    if (value >= 1000000) return (value / 1000000) + '백';
+                                    return '';
                                 }
                             }
                         },
                         x: {
                             ticks: {
-                                font: { size: 10 }
+                                font: { size: 8 },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 6
                             }
                         }
                     }
