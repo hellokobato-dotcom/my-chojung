@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>Library Test</h1>
+    <button onclick="testLibraries()">Test Libraries</button>
+    <pre id="result"></pre>
+    
+    <script>
+        function testLibraries() {
+            const result = document.getElementById('result');
+            let output = '';
+            
+            // Test Chart.js
+            if (typeof Chart !== 'undefined') {
+                output += '✅ Chart.js loaded successfully\n';
+                output += `   Version: ${Chart.version}\n\n`;
+            } else {
+                output += '❌ Chart.js failed to load\n\n';
+            }
+            
+            // Test XLSX (SheetJS)
+            if (typeof XLSX !== 'undefined') {
+                output += '✅ XLSX (SheetJS) loaded successfully\n';
+                output += `   Version: ${XLSX.version}\n\n`;
+                
+                // Test Excel generation
+                try {
+                    const wb = XLSX.utils.book_new();
+                    const ws = XLSX.utils.aoa_to_sheet([['Test', 'Data'], ['Hello', 'World']]);
+                    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+                    output += '✅ Excel workbook created successfully\n\n';
+                } catch (e) {
+                    output += `❌ Excel generation error: ${e.message}\n\n`;
+                }
+            } else {
+                output += '❌ XLSX (SheetJS) failed to load\n\n';
+            }
+            
+            result.textContent = output;
+        }
+        
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(testLibraries, 1000);
+        });
+    </script>
+</body>
+</html>

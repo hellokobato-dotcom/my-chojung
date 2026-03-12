@@ -19,17 +19,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>직원 관리 및 인건비 결산 PRODUCTION - 초정 2026</title>
-    <!-- External Libraries -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
+    <title>직원 관리 및 인건비 결산 FINAL - 초정 2026</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- Chart.js 4.4.1 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <!-- SheetJS for Excel Export -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <!-- jsPDF for PDF Generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1960,11 +1954,17 @@
 
         function exportToExcel() {
             try {
+                if (typeof XLSX === 'undefined') {
+                    // XLSX 라이브러리가 없으면 CSV로 fallback
+                    exportToCSV();
+                    return;
+                }
+                
                 // Create workbook
                 const wb = XLSX.utils.book_new();
                 
                 // Sheet 1: 직원 목록
-                const empData = [['\ucd08\uc815 \uc721\uc804\ubc00\uba74 \uac08\ube44\ud0d5 \uc804\ubb38\uc810 - \uc9c1\uc6d0 \uba85\ubd80'], 
+                const empData = [['\ucd08\uc815 \uc721\uc804\ubc00\uba74 \uac08\ube44\ud0d5 - \uc9c1\uc6d0\uba85\ubd80'], 
                                  ['\uc791\uc131\uc77c: ' + new Date().toISOString().split('T')[0]], 
                                  [],
                                  ['\uc0ac\ubc88', '\uc774\ub984', '\ubd80\uc11c', '\uc9c1\uae09', '\uc804\ud654\ubc88\ud638', '\uace0\uc6a9\ud615\ud0dc', '\uc2dc\uae09', '\uc785\uc0ac\uc77c', '\ud1f4\uc0ac\uc77c', '\uc740\ud589\uba85', '\uacc4\uc88c\ubc88\ud638', '\uba54\ubaa8']];
@@ -1987,14 +1987,13 @@
                 });
                 
                 const ws1 = XLSX.utils.aoa_to_sheet(empData);
-                ws1['!cols'] = [{wch:8},{wch:10},{wch:12},{wch:10},{wch:15},{wch:10},{wch:10},{wch:12},{wch:12},{wch:15},{wch:20},{wch:20}];
                 XLSX.utils.book_append_sheet(wb, ws1, '\uc9c1\uc6d0\uba85\ubd80');
                 
                 // Sheet 2: 급여 내역
-                const payData = [['\uae09\uc5ec \uc9c0\uae09 \ub0b4\uc5ed'], 
+                const payData = [['\uae09\uc5ec\ub0b4\uc5ed'], 
                                  ['\uc791\uc131\uc77c: ' + new Date().toISOString().split('T')[0]], 
                                  [],
-                                 ['\uc9c0\uae09\uc77c', '\uc0ac\ubc88', '\uc9c1\uc6d0\uba85', '\ubd80\uc11c', '\uc9c1\uae09', '\uace0\uc6a9\ud615\ud0dc', '\uadfc\ubb34\uc2dc\uac04', '\uc2dc\uae09', '\uae30\ubcf8\uae09', '\uacf5\uc81c\uc561', '\uc2e4\uc9c0\uae09\uc561', '\uc0ac\uc5c5\uc6a9\uacc4\uc88c', '\uac1c\uc778\uacc4\uc88c', '\uc740\ud589\uba85', '\uacc4\uc88c\ubc88\ud638', '\uba54\ubaa8']];
+                                 ['\uc9c0\uae09\uc77c', '\uc0ac\ubc88', '\uc9c1\uc6d0\uba85', '\ubd80\uc11c', '\uc9c1\uae09', '\uace0\uc6a9\ud615\ud0dc', '\uadfc\ubb34\uc2dc\uac04', '\uc2dc\uae09', '\uae30\ubcf8\uae09', '\uacf5\uc81c\uc561', '\uc2e4\uc9c0\uae09\uc561', '\uc0ac\uc5c5\uc6a9', '\uac1c\uc778', '\uc740\ud589', '\uacc4\uc88c', '\uba54\ubaa8']];
                 
                 payments.forEach(p => {
                     const e = employees.find(emp => emp.id === p.employeeId);
@@ -2021,14 +2020,13 @@
                 });
                 
                 const ws2 = XLSX.utils.aoa_to_sheet(payData);
-                ws2['!cols'] = [{wch:12},{wch:8},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:12},{wch:12},{wch:12},{wch:12},{wch:12},{wch:15},{wch:20},{wch:20}];
                 XLSX.utils.book_append_sheet(wb, ws2, '\uae09\uc5ec\ub0b4\uc5ed');
                 
                 // Sheet 3: 월간 통계
-                const statsData = [['\uc6d4\uac04 \uae09\uc5ec \ud1b5\uacc4'], 
+                const statsData = [['\uc6d4\uac04\ud1b5\uacc4'], 
                                    ['\uc791\uc131\uc77c: ' + new Date().toISOString().split('T')[0]], 
                                    [],
-                                   ['\uc6d4', '\uc9c1\uc6d0\uc218', '\ucd1d \uadfc\ubb34\uc2dc\uac04', '\ucd1d \uc9c0\uae09\uc561', '\ud3c9\uade0 \uc9c0\uae09\uc561']];
+                                   ['\uc6d4', '\uc9c1\uc6d0\uc218', '\ucd1d\uadfc\ubb34\uc2dc\uac04', '\ucd1d\uc9c0\uae09\uc561', '\ud3c9\uade0\uc9c0\uae09\uc561']];
                 
                 const currentYear = new Date().getFullYear();
                 const currentMonth = new Date().getMonth() + 1;
@@ -2041,28 +2039,68 @@
                     const totalPay = monthPay.reduce((sum, p) => sum + p.netPay, 0);
                     const avgPay = empIds.length > 0 ? Math.round(totalPay / empIds.length) : 0;
                     
-                    statsData.push([
-                        monthStr,
-                        empIds.length,
-                        totalHours,
-                        totalPay,
-                        avgPay
-                    ]);
+                    statsData.push([monthStr, empIds.length, totalHours, totalPay, avgPay]);
                 }
                 
                 const ws3 = XLSX.utils.aoa_to_sheet(statsData);
-                ws3['!cols'] = [{wch:10},{wch:10},{wch:15},{wch:15},{wch:15}];
                 XLSX.utils.book_append_sheet(wb, ws3, '\uc6d4\uac04\ud1b5\uacc4');
                 
-                // Generate and download
-                const filename = `\ucd08\uc815_\uae09\uc5ec\ub300\uc7a5_PRODUCTION_${new Date().toISOString().split('T')[0]}.xlsx`;
+                // Generate filename and download
+                const filename = `\ucd08\uc815_\uae09\uc5ec\ub300\uc7a5_FINAL_${new Date().toISOString().split('T')[0]}.xlsx`;
                 XLSX.writeFile(wb, filename);
                 
-                showToast('success', '\ub2e4\uc6b4\ub85c\ub4dc \uc131\uacf5', 'Excel \ud30c\uc77c \uc800\uc7a5\ub428 (3\uac1c \uc2dc\ud2b8)');
+                showToast('success', '\ub2e4\uc6b4\ub85c\ub4dc \uc131\uacf5', 'Excel \ud30c\uc77c (3\uc2dc\ud2b8) \uc800\uc7a5\ub428');
             } catch (error) {
                 console.error('Excel export error:', error);
-                showToast('error', '\ub0b4\ubcf4\ub0b4\uae30 \uc624\ub958', error.message);
+                // Fallback to CSV if Excel fails
+                exportToCSV();
             }
+        }
+        
+        function exportToCSV() {
+            let csv = '\uFEFF초정 육전밀면 갈비탕 전문점 - PREMIUM 급여관리대장\n';
+            csv += '작성일: ' + new Date().toISOString().split('T')[0] + '\n';
+            csv += '시스템: 2026 Ver PREMIUM\n\n';
+            
+            csv += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csv += '=== 직원 목록 ===\n';
+            csv += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csv += '사번,이름,부서,직급,전화번호,고용형태,시급,입사일,퇴사일,은행명,계좌번호,메모\n';
+            employees.forEach(e => {
+                csv += `${e.employeeNumber},${e.name},${e.department},${e.position||''},${e.phone},${e.employmentType},${e.hourlyWage},${e.hireDate},${e.terminationDate||''},${e.bankName||''},${e.accountNumber||''},${e.notes||''}\n`;
+            });
+            
+            csv += '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csv += '=== 급여 내역 ===\n';
+            csv += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csv += '지급일,사번,직원명,부서,직급,고용형태,근무시간,시급,기본급,공제액,실지급액,사업용계좌,개인계좌,은행명,계좌번호,메모\n';
+            payments.forEach(p => {
+                const e = employees.find(emp => emp.id === p.employeeId);
+                if (e) csv += `${p.paymentDate},${e.employeeNumber},${e.name},${e.department},${e.position||''},${e.employmentType},${p.workHours},${e.hourlyWage},${p.basePay},${p.deductions},${p.netPay},${p.businessAccountPay},${p.personalAccountPay},${p.bankName||''},${p.accountNumber||''},${p.notes||''}\n`;
+            });
+            
+            // 통계 섹션 추가
+            csv += '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csv += '=== 월간 통계 ===\n';
+            csv += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            const monthStats = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date();
+                d.setMonth(d.getMonth() - i);
+                const month = d.toISOString().slice(0, 7);
+                const monthPay = payments.filter(p => p.paymentDate.startsWith(month));
+                const total = monthPay.reduce((sum, p) => sum + p.netPay, 0);
+                monthStats.push({ month, total });
+            }
+            csv += '월,지급액(원)\n';
+            monthStats.forEach(s => csv += `${s.month},${s.total}\n`);
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `초정_급여대장_PREMIUM_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            showToast('success', '다운로드 완료', 'Premium Excel 파일 저장됨');
         }
 
         function generatePayslipPDF() {
@@ -2075,97 +2113,73 @@
                     return;
                 }
                 
-                // jsPDF는 한글 폰트 지원이 제한적이므로, 
-                // 대신 HTML 기반 PDF 미리보기를 생성합니다
-                let htmlContent = '<html><head><meta charset="UTF-8">';
-                htmlContent += '<style>';
-                htmlContent += 'body { font-family: "Noto Sans KR", sans-serif; padding: 40px; }';
-                htmlContent += '.header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #667eea; padding-bottom: 20px; }';
-                htmlContent += '.header h1 { font-size: 28px; margin: 0; color: #667eea; }';
-                htmlContent += '.header p { margin: 10px 0; color: #6b7280; }';
-                htmlContent += '.payslip { page-break-after: always; margin-bottom: 60px; padding: 30px; border: 2px solid #e5e7eb; border-radius: 12px; }';
-                htmlContent += '.emp-info { background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px; }';
-                htmlContent += '.info-row { display: flex; justify-content: space-between; margin: 8px 0; }';
-                htmlContent += '.label { font-weight: 700; color: #374151; }';
-                htmlContent += '.value { color: #1f2937; }';
-                htmlContent += '.summary { background: #fef3c7; padding: 20px; border-radius: 8px; margin-top: 20px; }';
-                htmlContent += '.summary-row { display: flex; justify-content: space-between; margin: 12px 0; font-size: 18px; font-weight: 900; }';
-                htmlContent += '.deductions { margin-top: 20px; padding: 15px; background: #f3f4f6; border-radius: 8px; }';
-                htmlContent += '.ded-item { display: flex; justify-content: space-between; margin: 6px 0; font-size: 14px; color: #6b7280; }';
-                htmlContent += '@media print { .no-print { display: none; } }';
-                htmlContent += '</style>';
-                htmlContent += '</head><body>';
+                // HTML 기반 인쇄 미리보기 생성
+                let html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
+                html += '<style>';
+                html += 'body{font-family:"Noto Sans KR",sans-serif;padding:40px;max-width:800px;margin:0 auto}';
+                html += '.header{text-align:center;margin-bottom:40px;border-bottom:3px solid #667eea;padding-bottom:20px}';
+                html += '.header h1{font-size:28px;margin:0;color:#667eea}';
+                html += '.payslip{page-break-after:always;margin-bottom:60px;padding:30px;border:2px solid #e5e7eb;border-radius:12px}';
+                html += '.info{background:#f9fafb;padding:20px;border-radius:8px;margin:15px 0}';
+                html += '.row{display:flex;justify-content:space-between;margin:8px 0}';
+                html += '.label{font-weight:700;color:#374151}';
+                html += '.value{color:#1f2937}';
+                html += '.summary{background:#fef3c7;padding:20px;border-radius:8px;margin-top:20px}';
+                html += '.total{font-size:20px;font-weight:900;color:#10b981}';
+                html += '@media print{.no-print{display:none}}';
+                html += '</style></head><body>';
                 
-                htmlContent += '<div class="header">';
-                htmlContent += '<h1>\ucd08\uc815 \uc721\uc804\ubc00\uba74 \uac08\ube44\ud0d5 \uc804\ubb38\uc810</h1>';
-                htmlContent += `<p>${currentMonth} \uae09\uc5ec\uba85\uc138\uc11c</p>`;
-                htmlContent += `<p>\ubc1c\ud589\uc77c: ${new Date().toLocaleDateString('ko-KR')}</p>`;
-                htmlContent += '</div>';
+                html += '<div class="header">';
+                html += '<h1>\ucd08\uc815 \uc721\uc804\ubc00\uba74 \uac08\ube44\ud0d5</h1>';
+                html += `<p>${currentMonth} \uae09\uc5ec\uba85\uc138\uc11c</p>`;
+                html += '</div>';
                 
                 monthPayments.forEach((p, idx) => {
                     const emp = employees.find(e => e.id === p.employeeId);
                     if (!emp) return;
                     
-                    const insurance = calculate2026SocialInsurance(p.basePay, emp.employmentType);
+                    const ins = calculate2026SocialInsurance(p.basePay, emp.employmentType);
                     
-                    htmlContent += `<div class="payslip">`;
-                    htmlContent += `<h2 style="margin-top: 0; color: #667eea;">\uae09\uc5ec\uba85\uc138\uc11c #${idx + 1}</h2>`;
-                    
-                    htmlContent += '<div class="emp-info">';
-                    htmlContent += `<div class="info-row"><span class="label">\uc9c1\uc6d0\uba85:</span><span class="value">${emp.name}</span></div>`;
-                    htmlContent += `<div class="info-row"><span class="label">\uc0ac\ubc88:</span><span class="value">${emp.employeeNumber || '-'}</span></div>`;
-                    htmlContent += `<div class="info-row"><span class="label">\ubd80\uc11c:</span><span class="value">${emp.department}${emp.position ? ' / ' + emp.position : ''}</span></div>`;
-                    htmlContent += `<div class="info-row"><span class="label">\uace0\uc6a9\ud615\ud0dc:</span><span class="value">${emp.employmentType}</span></div>`;
-                    htmlContent += `<div class="info-row"><span class="label">\uc9c0\uae09\uc77c:</span><span class="value">${formatDate(p.paymentDate)}</span></div>`;
-                    htmlContent += '</div>';
-                    
-                    htmlContent += '<div class="info-row"><span class="label">\uadfc\ubb34\uc2dc\uac04:</span><span class="value">${p.workHours}\uc2dc\uac04</span></div>';
-                    htmlContent += '<div class="info-row"><span class="label">\uc2dc\uae09:</span><span class="value">${formatCurrency(emp.hourlyWage)}\uc6d0</span></div>';
-                    htmlContent += '<div class="info-row"><span class="label">\uae30\ubcf8\uae09:</span><span class="value">${formatCurrency(p.basePay)}\uc6d0</span></div>';
+                    html += `<div class="payslip">`;
+                    html += `<h2>\uae09\uc5ec\uba85\uc138\uc11c #${idx + 1}</h2>`;
+                    html += '<div class="info">';
+                    html += `<div class="row"><span class="label">\uc9c1\uc6d0\uba85:</span><span class="value">${emp.name}</span></div>`;
+                    html += `<div class="row"><span class="label">\uc0ac\ubc88:</span><span class="value">${emp.employeeNumber||'-'}</span></div>`;
+                    html += `<div class="row"><span class="label">\ubd80\uc11c:</span><span class="value">${emp.department}${emp.position?' / '+emp.position:''}</span></div>`;
+                    html += `<div class="row"><span class="label">\uc9c0\uae09\uc77c:</span><span class="value">${formatDate(p.paymentDate)}</span></div>`;
+                    html += '</div>';
+                    html += `<div class="row"><span class="label">\uadfc\ubb34\uc2dc\uac04:</span><span>${p.workHours}\uc2dc\uac04</span></div>`;
+                    html += `<div class="row"><span class="label">\uae30\ubcf8\uae09:</span><span>${formatCurrency(p.basePay)}\uc6d0</span></div>`;
                     
                     if (emp.employmentType !== '\uc77c\uc6a9\uc9c1') {
-                        htmlContent += '<div class="deductions">';
-                        htmlContent += '<strong>\uacf5\uc81c \ub0b4\uc5ed (2026\ub144 4\ub300\ubcf4\ud5d8)</strong>';
-                        htmlContent += `<div class="ded-item"><span>\uad6d\ubbfc\uc5f0\uae08 (4.75%):</span><span>${formatCurrency(insurance.nationalPension)}\uc6d0</span></div>`;
-                        htmlContent += `<div class="ded-item"><span>\uac74\uac15\ubcf4\ud5d8 (3.595%):</span><span>${formatCurrency(insurance.healthInsurance)}\uc6d0</span></div>`;
-                        htmlContent += `<div class="ded-item"><span>\uc7a5\uae30\uc694\uc591 (13.14%):</span><span>${formatCurrency(insurance.longTermCare)}\uc6d0</span></div>`;
-                        htmlContent += `<div class="ded-item"><span>\uace0\uc6a9\ubcf4\ud5d8 (0.9%):</span><span>${formatCurrency(insurance.employmentInsurance)}\uc6d0</span></div>`;
-                        htmlContent += '</div>';
-                    } else {
-                        htmlContent += '<div class="deductions">';
-                        htmlContent += '<strong>\uacf5\uc81c \ub0b4\uc5ed (\uc77c\uc6a9\uc9c1)</strong>';
-                        htmlContent += `<div class="ded-item"><span>\uace0\uc6a9\ubcf4\ud5d8 (0.9%):</span><span>${formatCurrency(insurance.employmentInsurance)}\uc6d0</span></div>`;
-                        htmlContent += '</div>';
+                        html += '<div class="info">';
+                        html += '<strong>\uacf5\uc81c\ub0b4\uc5ed (4\ub300\ubcf4\ud5d8)</strong>';
+                        html += `<div class="row"><span>\uad6d\ubbfc\uc5f0\uae08:</span><span>${formatCurrency(ins.nationalPension)}\uc6d0</span></div>`;
+                        html += `<div class="row"><span>\uac74\uac15\ubcf4\ud5d8:</span><span>${formatCurrency(ins.healthInsurance)}\uc6d0</span></div>`;
+                        html += `<div class="row"><span>\uc7a5\uae30\uc694\uc591:</span><span>${formatCurrency(ins.longTermCare)}\uc6d0</span></div>`;
+                        html += `<div class="row"><span>\uace0\uc6a9\ubcf4\ud5d8:</span><span>${formatCurrency(ins.employmentInsurance)}\uc6d0</span></div>`;
+                        html += '</div>';
                     }
                     
-                    htmlContent += `<div class="info-row"><span class="label">\ucd1d \uacf5\uc81c\uc561:</span><span class="value" style="color: #ef4444;">${formatCurrency(p.deductions)}\uc6d0</span></div>`;
-                    
-                    htmlContent += '<div class="summary">';
-                    htmlContent += `<div class="summary-row"><span>\uc2e4\uc9c0\uae09\uc561:</span><span style="color: #10b981;">${formatCurrency(p.netPay)}\uc6d0</span></div>`;
-                    htmlContent += `<div style="font-size: 14px; color: #6b7280; margin-top: 10px;">\uc0ac\uc5c5\uc6a9 \uacc4\uc88c: ${formatCurrency(p.businessAccountPay)}\uc6d0 / \uac1c\uc778 \uacc4\uc88c: ${formatCurrency(p.personalAccountPay)}\uc6d0</div>`;
-                    if (p.bankName) {
-                        htmlContent += `<div style="font-size: 14px; color: #6b7280;">\uacc4\uc88c: ${p.bankName} ${p.accountNumber || ''}</div>`;
-                    }
-                    htmlContent += '</div>';
-                    
-                    htmlContent += '</div>';
+                    html += '<div class="summary">';
+                    html += `<div class="row total"><span>\uc2e4\uc9c0\uae09\uc561:</span><span>${formatCurrency(p.netPay)}\uc6d0</span></div>`;
+                    html += `<div style="font-size:14px;margin-top:10px">\uc0ac\uc5c5\uc6a9: ${formatCurrency(p.businessAccountPay)}\uc6d0 / \uac1c\uc778: ${formatCurrency(p.personalAccountPay)}\uc6d0</div>`;
+                    if (p.bankName) html += `<div style="font-size:14px">\uacc4\uc88c: ${p.bankName} ${p.accountNumber||''}</div>`;
+                    html += '</div></div>';
                 });
                 
-                htmlContent += '<div class="no-print" style="text-align: center; margin-top: 40px;">';
-                htmlContent += '<button onclick="window.print()" style="padding: 12px 24px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;">\uc778\uc1c4\ud558\uae30</button>';
-                htmlContent += '<button onclick="window.close()" style="margin-left: 12px; padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;">\ub2eb\uae30</button>';
-                htmlContent += '</div>';
+                html += '<div class="no-print" style="text-align:center;margin-top:40px">';
+                html += '<button onclick="window.print()" style="padding:12px 24px;background:#667eea;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer">\uc778\uc1c4\ud558\uae30</button>';
+                html += '<button onclick="window.close()" style="margin-left:12px;padding:12px 24px;background:#6b7280;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer">\ub2eb\uae30</button>';
+                html += '</div></body></html>';
                 
-                htmlContent += '</body></html>';
-                
-                // Open in new window
                 const printWindow = window.open('', '_blank');
-                printWindow.document.write(htmlContent);
+                printWindow.document.write(html);
                 printWindow.document.close();
                 
-                showToast('success', 'PDF \uc900\ube44 \uc644\ub8cc', `${monthPayments.length}\uac74\uc758 \uae09\uc5ec\uba85\uc138\uc11c \uc0dd\uc131\ub428`);
+                showToast('success', 'PDF \uc900\ube44', `${monthPayments.length}\uac74 \uae09\uc5ec\uba85\uc138\uc11c \uc0dd\uc131`);
             } catch (error) {
-                console.error('PDF generation error:', error);
+                console.error('PDF error:', error);
                 showToast('error', '\uc0dd\uc131 \uc624\ub958', error.message);
             }
         }
