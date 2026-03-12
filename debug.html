@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - 직원 관리</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; padding: 20px; }
+        .employee-card { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; }
+        .debug-info { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>직원 관리 시스템 - 디버그 페이지</h1>
+    
+    <div class="debug-info">
+        <h3>시스템 상태</h3>
+        <div id="systemStatus">초기화 중...</div>
+    </div>
+    
+    <div class="debug-info">
+        <h3>LocalStorage 데이터</h3>
+        <div id="storageInfo">확인 중...</div>
+    </div>
+    
+    <h2>직원 목록</h2>
+    <div id="employeesGrid"></div>
+    
+    <script>
+        let employees = [];
+        
+        function loadData() {
+            const empData = localStorage.getItem('employees_2026');
+            if (empData) {
+                employees = JSON.parse(empData);
+                console.log('로드된 데이터:', employees);
+            }
+            return employees;
+        }
+        
+        function saveData() {
+            localStorage.setItem('employees_2026', JSON.stringify(employees));
+            console.log('저장 완료:', employees);
+        }
+        
+        function createSampleData() {
+            employees = [
+                {
+                    id: 'emp1',
+                    name: '김대표',
+                    department: '대표관리',
+                    phone: '010-1234-5678',
+                    employmentType: '정규직',
+                    hourlyWage: 25000,
+                    hireDate: '2020-01-01'
+                },
+                {
+                    id: 'emp2',
+                    name: '박매니저',
+                    department: '홀매니저',
+                    phone: '010-2345-6789',
+                    employmentType: '정규직',
+                    hourlyWage: 15000,
+                    hireDate: '2021-03-01'
+                }
+            ];
+            saveData();
+            console.log('샘플 데이터 생성 완료');
+        }
+        
+        function renderEmployees() {
+            const grid = document.getElementById('employeesGrid');
+            
+            if (employees.length === 0) {
+                grid.innerHTML = '<p>등록된 직원이 없습니다.</p>';
+                return;
+            }
+            
+            grid.innerHTML = employees.map(emp => `
+                <div class="employee-card">
+                    <h3>${emp.name}</h3>
+                    <p>부서: ${emp.department}</p>
+                    <p>전화: ${emp.phone}</p>
+                    <p>고용형태: ${emp.employmentType}</p>
+                    <p>시급: ${emp.hourlyWage}원</p>
+                    <p>입사일: ${emp.hireDate}</p>
+                </div>
+            `).join('');
+        }
+        
+        function updateStatus() {
+            document.getElementById('systemStatus').innerHTML = `
+                <p>직원 수: ${employees.length}명</p>
+                <p>배열 내용: ${JSON.stringify(employees, null, 2)}</p>
+            `;
+            
+            const stored = localStorage.getItem('employees_2026');
+            document.getElementById('storageInfo').innerHTML = `
+                <p>저장된 데이터 존재: ${stored ? 'YES' : 'NO'}</p>
+                <p>저장된 데이터 길이: ${stored ? stored.length : 0}</p>
+                <pre>${stored ? stored : '없음'}</pre>
+            `;
+        }
+        
+        // 초기화
+        console.log('=== 시스템 초기화 시작 ===');
+        
+        loadData();
+        console.log('1. 데이터 로드 후:', employees.length, '명');
+        
+        if (employees.length === 0) {
+            console.log('2. 샘플 데이터 생성 중...');
+            createSampleData();
+        }
+        
+        console.log('3. 렌더링 전 직원 수:', employees.length);
+        renderEmployees();
+        updateStatus();
+        
+        console.log('=== 초기화 완료 ===');
+    </script>
+</body>
+</html>
