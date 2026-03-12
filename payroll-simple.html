@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>급여 관리 시스템 2026 - 초정</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 900;
+        }
+        .employees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .employee-card {
+            background: #f9fafb;
+            border-radius: 15px;
+            padding: 24px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+        .employee-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+            transform: translateY(-5px);
+        }
+        .emp-name {
+            font-size: 22px;
+            font-weight: 900;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+        .emp-info {
+            color: #6b7280;
+            font-size: 14px;
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .emp-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-content {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .modal-header h2 {
+            color: #667eea;
+            font-size: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #374151;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <i class="fas fa-users"></i>
+            급여 관리 시스템 2026
+        </h1>
+        <div class="subtitle">
+            초정 육전밀면 갈비탕 전문점 | <span id="currentDate"></span>
+        </div>
+        
+        <div class="actions">
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-user-plus"></i> 직원 추가
+            </button>
+            <button class="btn btn-success" onclick="exportExcel()">
+                <i class="fas fa-file-excel"></i> 엑셀 내보내기
+            </button>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-label">총 직원 수</div>
+                <div class="stat-value" id="totalEmployees">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">이번 달 지급액</div>
+                <div class="stat-value" id="monthlyTotal">0원</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">평균 시급</div>
+                <div class="stat-value" id="avgWage">0원</div>
+            </div>
+        </div>
+        
+        <div id="employeesGrid" class="employees-grid"></div>
+    </div>
+    
+    <!-- 직원 추가/수정 모달 -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-edit"></i> <span id="modalTitle">직원 등록</span></h2>
+                <button class="btn btn-sm" onclick="closeModal()" style="background: rgba(0,0,0,0.1);">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="employeeForm" onsubmit="event.preventDefault(); saveEmployee();">
+                <input type="hidden" id="employeeId">
+                
+                <div class="form-group">
+                    <label>이름 *</label>
+                    <input type="text" id="employeeName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>부서 *</label>
+                    <select id="employeeDepartment" required>
+                        <option value="">선택하세요</option>
+                        <option value="대표관리">대표관리</option>
+                        <option value="홀매니저">홀매니저</option>
+                        <option value="주방매니저">주방매니저</option>
+                        <option value="위생매니저">위생매니저</option>
+                        <option value="안전매니저">안전매니저</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>전화번호 *</label>
+                    <input type="tel" id="employeePhone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>고용형태 *</label>
+                    <select id="employmentType" required>
+                        <option value="정규직">정규직</option>
+                        <option value="일용직">일용직</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>시급 *</label>
+                    <input type="number" id="hourlyWage" required min="9620">
+                </div>
+                
+                <div class="form-group">
+                    <label>입사일 *</label>
+                    <input type="date" id="hireDate" required>
+                </div>
+                
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <i class="fas fa-save"></i> 저장
+                    </button>
+                    <button type="button" class="btn" onclick="closeModal()" style="background: #e5e7eb; flex: 1;">
+                        취소
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let employees = [];
+        let payments = [];
+        
+        // 데이터 로드
+        function loadData() {
+            try {
+                const empData = localStorage.getItem('employees_2026_simple');
+                const payData = localStorage.getItem('payments_2026_simple');
+                if (empData) employees = JSON.parse(empData);
+                if (payData) payments = JSON.parse(payData);
+                console.log('데이터 로드:', employees.length, '명');
+            } catch (e) {
+                console.error('데이터 로드 오류:', e);
+            }
+        }
+        
+        // 데이터 저장
+        function saveData() {
+            try {
+                localStorage.setItem('employees_2026_simple', JSON.stringify(employees));
+                localStorage.setItem('payments_2026_simple', JSON.stringify(payments));
+                console.log('데이터 저장 완료:', employees.length, '명');
+            } catch (e) {
+                console.error('데이터 저장 오류:', e);
+            }
+        }
+        
+        // 샘플 데이터 생성
+        function createSampleData() {
+            employees = [
+                {
+                    id: 'emp1',
+                    name: '김대표',
+                    department: '대표관리',
+                    phone: '010-1234-5678',
+                    employmentType: '정규직',
+                    hourlyWage: 25000,
+                    hireDate: '2020-01-01'
+                },
+                {
+                    id: 'emp2',
+                    name: '박매니저',
+                    department: '홀매니저',
+                    phone: '010-2345-6789',
+                    employmentType: '정규직',
+                    hourlyWage: 15000,
+                    hireDate: '2021-03-01'
+                }
+            ];
+            saveData();
+            console.log('샘플 데이터 생성 완료');
+        }
+        
+        // 직원 목록 렌더링
+        function renderEmployees() {
+            const grid = document.getElementById('employeesGrid');
+            
+            if (employees.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-users-slash"></i>
+                        <h3>등록된 직원이 없습니다</h3>
+                        <p>직원 추가 버튼을 클릭하여 등록하세요</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = employees.map(emp => `
+                <div class="employee-card">
+                    <div class="emp-name">${emp.name}</div>
+                    <div class="emp-info">
+                        <i class="fas fa-building"></i> ${emp.department}
+                    </div>
+                    <div class="emp-info">
+                        <i class="fas fa-phone"></i> ${emp.phone}
+                    </div>
+                    <div class="emp-info">
+                        <i class="fas fa-briefcase"></i> ${emp.employmentType}
+                    </div>
+                    <div class="emp-info">
+                        <i class="fas fa-won-sign"></i> ${formatNumber(emp.hourlyWage)}원/시간
+                    </div>
+                    <div class="emp-actions">
+                        <button class="btn btn-sm btn-primary" onclick="editEmployee('${emp.id}')">
+                            <i class="fas fa-edit"></i> 수정
+                        </button>
+                        <button class="btn btn-sm" onclick="deleteEmployee('${emp.id}')" 
+                                style="background: #ef4444; color: white;">
+                            <i class="fas fa-trash"></i> 삭제
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 통계 업데이트
+        function updateStats() {
+            document.getElementById('totalEmployees').textContent = employees.length;
+            const avgWage = employees.length > 0 
+                ? Math.round(employees.reduce((sum, e) => sum + e.hourlyWage, 0) / employees.length)
+                : 0;
+            document.getElementById('avgWage').textContent = formatNumber(avgWage) + '원';
+            document.getElementById('monthlyTotal').textContent = '0원';
+        }
+        
+        // 모달 열기
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '직원 등록';
+            document.getElementById('employeeForm').reset();
+            document.getElementById('employeeId').value = '';
+            document.getElementById('hireDate').valueAsDate = new Date();
+            document.getElementById('employeeModal').style.display = 'block';
+        }
+        
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('employeeModal').style.display = 'none';
+        }
+        
+        // 직원 저장
+        function saveEmployee() {
+            const empId = document.getElementById('employeeId').value;
+            const empData = {
+                id: empId || `emp${Date.now()}`,
+                name: document.getElementById('employeeName').value,
+                department: document.getElementById('employeeDepartment').value,
+                phone: document.getElementById('employeePhone').value,
+                employmentType: document.getElementById('employmentType').value,
+                hourlyWage: parseInt(document.getElementById('hourlyWage').value),
+                hireDate: document.getElementById('hireDate').value
+            };
+            
+            if (empId) {
+                // 수정
+                const idx = employees.findIndex(e => e.id === empId);
+                if (idx >= 0) {
+                    employees[idx] = empData;
+                    showToast('success', '수정 완료', `${empData.name}님 정보가 수정되었습니다`);
+                }
+            } else {
+                // 신규 추가
+                employees.push(empData);
+                showToast('success', '등록 완료', `${empData.name}님이 등록되었습니다`);
+            }
+            
+            saveData();
+            renderEmployees();
+            updateStats();
+            closeModal();
+        }
+        
+        // 직원 수정
+        function editEmployee(id) {
+            const emp = employees.find(e => e.id === id);
+            if (!emp) return;
+            
+            document.getElementById('modalTitle').textContent = '직원 수정';
+            document.getElementById('employeeId').value = emp.id;
+            document.getElementById('employeeName').value = emp.name;
+            document.getElementById('employeeDepartment').value = emp.department;
+            document.getElementById('employeePhone').value = emp.phone;
+            document.getElementById('employmentType').value = emp.employmentType;
+            document.getElementById('hourlyWage').value = emp.hourlyWage;
+            document.getElementById('hireDate').value = emp.hireDate;
+            document.getElementById('employeeModal').style.display = 'block';
+        }
+        
+        // 직원 삭제
+        function deleteEmployee(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            
+            const emp = employees.find(e => e.id === id);
+            employees = employees.filter(e => e.id !== id);
+            
+            saveData();
+            renderEmployees();
+            updateStats();
+            showToast('success', '삭제 완료', `${emp.name}님이 삭제되었습니다`);
+        }
+        
+        // 엑셀 내보내기
+        function exportExcel() {
+            const BOM = '\uFEFF';
+            let csv = BOM + '직원 목록\n';
+            csv += '이름,부서,전화번호,고용형태,시급,입사일\n';
+            
+            employees.forEach(emp => {
+                csv += `${emp.name},${emp.department},${emp.phone},${emp.employmentType},${emp.hourlyWage},${emp.hireDate}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `직원목록_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+            
+            showToast('success', '다운로드 완료', 'CSV 파일이 다운로드되었습니다');
+        }
+        
+        // 숫자 포맷
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        // 토스트 알림
+        function showToast(type, title, message) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <div>
+                    <strong>${title}</strong>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #6b7280;">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('시스템 초기화...');
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ko-KR');
+            
+            loadData();
+            
+            if (employees.length === 0) {
+                console.log('샘플 데이터 생성 중...');
+                createSampleData();
+            }
+            
+            renderEmployees();
+            updateStats();
+            
+            console.log('시스템 준비 완료!');
+            showToast('success', '시스템 준비', '정상 로드되었습니다');
+        });
+    </script>
+</body>
+</html>
