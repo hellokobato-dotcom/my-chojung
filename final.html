@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직원 관리 및 인건비 결산 - 초정 가계부</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+            --danger: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            --warning: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            --info: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* 헤더 */
+        .app-header {
+            background: var(--primary);
+            color: white;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .app-header h1 {
+            font-size: 32px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .demo-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            backdrop-filter: blur(10px);
+        }
+
+        .app-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-icon {
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .btn-icon:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 30px 40px;
+            background: #f8f9ff;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+        }
+
+        .stat-content h3 {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 900;
+            color: #2c3e50;
+        }
+
+        /* 탭 네비게이션 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 20px 40px 0;
+            background: white;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 16px;
+            font-weight: 600;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        /* 콘텐츠 영역 */
+        .content {
+            padding: 30px 40px;
+            min-height: 400px;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .content-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filters select,
+        .filters input {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Noto Sans KR', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .filters select:focus,
+        .filters input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 테이블 */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--primary);
+        }
+
+        th {
+            padding: 18px 15px;
+            text-align: left;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f8f9ff;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 900px;
+            margin: 20px auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            background: var(--primary);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .form-section {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .form-section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Noto Sans KR', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .computed-value {
+            background: #e8f5e9 !important;
+            border-color: #4caf50 !important;
+            color: #2e7d32;
+            font-weight: 700;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            background: #f8f9ff;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #95a5a6;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* 토스트 알림 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 20px;
+            }
+
+            .app-header h1 {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                padding: 20px;
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .filters {
+                width: 100%;
+            }
+
+            .filters input,
+            .filters select {
+                width: 100%;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 헤더 -->
+        <header class="app-header">
+            <div>
+                <h1>
+                    <i class="fas fa-users"></i>
+                    초정 가계부
+                    <span class="demo-badge">데모</span>
+                </h1>
+                <p class="app-subtitle">직원 관리 및 인건비 결산 시스템 | LocalStorage 사용</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel"></i> 엑셀 다운로드
+                </button>
+                <button class="btn btn-primary" onclick="openEmployeeModal(null)">
+                    <i class="fas fa-user-plus"></i> 직원 등록
+                </button>
+            </div>
+        </header>
+
+        <!-- 통계 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>총 직원 수</h3>
+                    <div class="stat-value" id="totalEmployees">0명</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <i class="fas fa-won-sign"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>이번 달 총 지급액</h3>
+                    <div class="stat-value" id="totalPayment">0원</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>총 근무시간</h3>
+                    <div class="stat-value" id="totalHours">0시간</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <div class="stat-content">
+                    <h3>평균 시급/월급</h3>
+                    <div class="stat-value" id="averageWage" style="font-size: 18px;">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 탭 -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('employees')">
+                <i class="fas fa-users"></i> 직원 목록
+            </button>
+            <button class="tab" onclick="switchTab('payments')">
+                <i class="fas fa-file-invoice-dollar"></i> 급여 지급 내역
+            </button>
+        </div>
+
+        <!-- 직원 목록 -->
+        <div id="employeesTab" class="content">
+            <div class="content-header">
+                <h2 class="content-title">
+                    <i class="fas fa-list"></i> 직원 목록
+                </h2>
+                <div class="filters">
+                    <select id="filterStatus" onchange="filterEmployees()">
+                        <option value="">전체 상태</option>
+                        <option value="재직">재직</option>
+                        <option value="퇴직">퇴직</option>
+                    </select>
+                    <select id="filterDepartment" onchange="filterEmployees()">
+                        <option value="">전체 부서</option>
+                    </select>
+                    <select id="filterEmploymentType" onchange="filterEmployees()">
+                        <option value="">전체 고용형태</option>
+                        <option value="일용직">일용직</option>
+                        <option value="상용직">상용직</option>
+                    </select>
+                    <input type="text" id="searchEmployee" placeholder="이름, 연락처로 검색..." style="min-width: 200px;" oninput="filterEmployees()">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">사진</th>
+                            <th>이름</th>
+                            <th>부서</th>
+                            <th>고용형태</th>
+                            <th>연락처</th>
+                            <th>시급/월급</th>
+                            <th style="text-align: center;">상태</th>
+                            <th style="text-align: center; width: 200px;">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody">
+                        <tr>
+                            <td colspan="8" class="empty-state">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <h3>데이터 로딩 중...</h3>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 급여 내역 -->
+        <div id="paymentsTab" class="content" style="display: none;">
+            <div class="content-header">
+                <h2 class="content-title">
+                    <i class="fas fa-file-invoice-dollar"></i> 급여 지급 내역
+                </h2>
+                <div class="filters">
+                    <select id="filterPaymentYear" onchange="filterPayments()">
+                        <option value="">전체 연도</option>
+                    </select>
+                    <select id="filterPaymentMonth" onchange="filterPayments()">
+                        <option value="">전체 월</option>
+                        <option value="1">1월</option>
+                        <option value="2">2월</option>
+                        <option value="3">3월</option>
+                        <option value="4">4월</option>
+                        <option value="5">5월</option>
+                        <option value="6">6월</option>
+                        <option value="7">7월</option>
+                        <option value="8">8월</option>
+                        <option value="9">9월</option>
+                        <option value="10">10월</option>
+                        <option value="11">11월</option>
+                        <option value="12">12월</option>
+                    </select>
+                    <input type="text" id="searchPayment" placeholder="직원 이름으로 검색..." style="min-width: 200px;" oninput="filterPayments()">
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>지급일</th>
+                            <th>직원명</th>
+                            <th>고용형태</th>
+                            <th>근무시간</th>
+                            <th style="text-align: right;">기본급</th>
+                            <th style="text-align: right;">공제액</th>
+                            <th style="text-align: right;">지급액</th>
+                            <th style="text-align: center;">신고</th>
+                            <th style="text-align: center; width: 100px;">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentTableBody">
+                        <tr>
+                            <td colspan="9" class="empty-state">
+                                <i class="fas fa-file-invoice"></i>
+                                <h3>급여 지급 내역이 없습니다</h3>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-edit"></i> <span id="modalTitle">직원 등록</span></h2>
+                <button class="modal-close" onclick="closeEmployeeModal()">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <form id="employeeForm" onsubmit="return false;">
+                    <input type="hidden" id="employeeId">
+
+                    <!-- 기본 정보 -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-id-card"></i> 기본 정보
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-user"></i> 이름 *</label>
+                                <input type="text" id="employeeName" required placeholder="이름을 입력하세요">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-building"></i> 부서 *</label>
+                                <input type="text" id="employeeDepartment" required placeholder="예: 현장, 사무실">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-phone"></i> 연락처 *</label>
+                                <input type="tel" id="employeePhone" required placeholder="010-0000-0000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 고용 정보 -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-briefcase"></i> 고용 정보
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-user-tag"></i> 고용 형태 *</label>
+                                <select id="employmentType" required onchange="toggleSalaryFields()">
+                                    <option value="">선택하세요</option>
+                                    <option value="일용직">일용직</option>
+                                    <option value="상용직">상용직</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="hourlyRateGroup" style="display: none;">
+                                <label><i class="fas fa-won-sign"></i> 시급 *</label>
+                                <input type="number" id="hourlyRate" placeholder="예: 11800" min="0" step="10">
+                            </div>
+                            <div class="form-group" id="monthlySalaryGroup" style="display: none;">
+                                <label><i class="fas fa-won-sign"></i> 월급 *</label>
+                                <input type="number" id="monthlySalary" placeholder="예: 3000000" min="0" step="10000">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-plus"></i> 입사일 *</label>
+                                <input type="date" id="hireDate" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-minus"></i> 퇴사일</label>
+                                <input type="date" id="resignDate">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-user-check"></i> 재직 상태 *</label>
+                                <select id="employeeStatus" required>
+                                    <option value="재직">재직</option>
+                                    <option value="퇴직">퇴직</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-university"></i> 계좌번호</label>
+                                <input type="text" id="bankAccount" placeholder="은행명과 계좌번호">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 급여 정보 -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <i class="fas fa-file-invoice-dollar"></i> 급여 지급 정보 (선택사항)
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-check"></i> 지급일</label>
+                                <input type="date" id="paymentDate">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar"></i> 연도</label>
+                                <input type="number" id="paymentYear" min="2020" max="2100" placeholder="2026">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-alt"></i> 월</label>
+                                <select id="paymentMonth">
+                                    <option value="">선택</option>
+                                    <option value="1">1월</option>
+                                    <option value="2">2월</option>
+                                    <option value="3">3월</option>
+                                    <option value="4">4월</option>
+                                    <option value="5">5월</option>
+                                    <option value="6">6월</option>
+                                    <option value="7">7월</option>
+                                    <option value="8">8월</option>
+                                    <option value="9">9월</option>
+                                    <option value="10">10월</option>
+                                    <option value="11">11월</option>
+                                    <option value="12">12월</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-clock"></i> 근무시간</label>
+                                <input type="number" id="workHours" min="0" step="0.5" placeholder="예: 200" oninput="calculatePayroll()">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-coins"></i> 기본급 (자동 계산)</label>
+                                <input type="number" id="baseSalary" class="computed-value" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-minus-circle"></i> 공제액 (자동 계산)</label>
+                                <input type="number" id="deductions" class="computed-value" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-hand-holding-usd"></i> 최종 지급액</label>
+                                <input type="number" id="netPay" class="computed-value" readonly>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label><i class="fas fa-file-alt"></i> 신고 여부</label>
+                                <select id="isReported">
+                                    <option value="미신고">미신고</option>
+                                    <option value="신고">신고</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-sticky-note"></i> 비고</label>
+                                <input type="text" id="notes" placeholder="메모">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEmployeeModal()">
+                    <i class="fas fa-times"></i> 취소
+                </button>
+                <button class="btn btn-success" onclick="saveEmployee()">
+                    <i class="fas fa-save"></i> 저장
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+// 유틸리티 함수
+function formatCurrency(amount) {
+    if (!amount && amount !== 0) return '0원';
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
+}
+
+function formatDate(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function showSuccess(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.animation = 'slideIn 0.3s ease-out reverse';
+        setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
+}
+
+// 전역 변수
+let employees = [];
+let payments = [];
+let currentTab = 'employees';
+
+// 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    checkAndInitializeMockData();
+    loadEmployees();
+    loadPayments();
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('paymentYear').value = new Date().getFullYear();
+    document.getElementById('paymentMonth').value = new Date().getMonth() + 1;
+    
+    setTimeout(() => showSuccess('데모 버전에 오신 것을 환영합니다!'), 500);
+});
+
+// Mock 데이터 초기화
+function checkAndInitializeMockData() {
+    if (!localStorage.getItem('demo_employees')) {
+        const mockEmployees = [
+            {id: 'emp-001', name: '김철수', department: '현장', phone: '010-1234-5678', employment_type: '일용직', hourly_rate: 12000, monthly_salary: 0, bank_account: '국민은행 123-456-789012', hire_date: '2024-01-15', resign_date: null, status: '재직'},
+            {id: 'emp-002', name: '이영희', department: '사무실', phone: '010-2345-6789', employment_type: '상용직', hourly_rate: 0, monthly_salary: 3200000, bank_account: '신한은행 987-654-321098', hire_date: '2023-06-01', resign_date: null, status: '재직'},
+            {id: 'emp-003', name: '박민수', department: '현장', phone: '010-3456-7890', employment_type: '일용직', hourly_rate: 11800, monthly_salary: 0, bank_account: '우리은행 456-789-012345', hire_date: '2024-03-01', resign_date: null, status: '재직'},
+            {id: 'emp-004', name: '정수진', department: '영업', phone: '010-4567-8901', employment_type: '상용직', hourly_rate: 0, monthly_salary: 2800000, bank_account: '하나은행 789-012-345678', hire_date: '2023-09-15', resign_date: null, status: '재직'},
+            {id: 'emp-005', name: '최동욱', department: '현장', phone: '010-5678-9012', employment_type: '일용직', hourly_rate: 13000, monthly_salary: 0, bank_account: '기업은행 012-345-678901', hire_date: '2024-02-01', resign_date: '2024-02-28', status: '퇴직'}
+        ];
+        
+        const mockPayments = [
+            {id: 'pay-001', employee_id: 'emp-001', employee_name: '김철수', employment_type: '일용직', payment_date: '2026-02-28', payment_year: 2026, payment_month: 2, work_hours: 180, hourly_rate: 12000, monthly_salary: 0, base_salary: 2160000, deductions: 19440, net_pay: 2140560, is_reported: '신고', notes: '2월 급여'},
+            {id: 'pay-002', employee_id: 'emp-002', employee_name: '이영희', employment_type: '상용직', payment_date: '2026-02-28', payment_year: 2026, payment_month: 2, work_hours: 0, hourly_rate: 0, monthly_salary: 3200000, base_salary: 3200000, deductions: 273960, net_pay: 2926040, is_reported: '신고', notes: '2월 급여'},
+            {id: 'pay-003', employee_id: 'emp-003', employee_name: '박민수', employment_type: '일용직', payment_date: '2026-02-28', payment_year: 2026, payment_month: 2, work_hours: 200, hourly_rate: 11800, monthly_salary: 0, base_salary: 2360000, deductions: 21240, net_pay: 2338760, is_reported: '신고', notes: '2월 급여'},
+            {id: 'pay-004', employee_id: 'emp-001', employee_name: '김철수', employment_type: '일용직', payment_date: '2026-03-11', payment_year: 2026, payment_month: 3, work_hours: 80, hourly_rate: 12000, monthly_salary: 0, base_salary: 960000, deductions: 8640, net_pay: 951360, is_reported: '미신고', notes: '3월 첫째주'}
+        ];
+        
+        localStorage.setItem('demo_employees', JSON.stringify(mockEmployees));
+        localStorage.setItem('demo_payments', JSON.stringify(mockPayments));
+    }
+}
+
+// 데이터 로드
+function loadEmployees() {
+    const data = localStorage.getItem('demo_employees');
+    employees = data ? JSON.parse(data) : [];
+    updateDepartmentFilter();
+    renderEmployees(employees);
+    updateStatistics();
+}
+
+function loadPayments() {
+    const data = localStorage.getItem('demo_payments');
+    payments = data ? JSON.parse(data) : [];
+    updateYearFilter();
+    renderPayments(payments);
+}
+
+// 필터 업데이트
+function updateDepartmentFilter() {
+    const departments = [...new Set(employees.map(emp => emp.department).filter(d => d))];
+    const select = document.getElementById('filterDepartment');
+    departments.forEach(dept => {
+        if (!Array.from(select.options).some(opt => opt.value === dept)) {
+            select.add(new Option(dept, dept));
+        }
+    });
+}
+
+function updateYearFilter() {
+    const years = [...new Set(payments.map(pay => pay.payment_year).filter(y => y))];
+    years.sort((a, b) => b - a);
+    const select = document.getElementById('filterPaymentYear');
+    select.innerHTML = '<option value="">전체 연도</option>';
+    years.forEach(year => select.add(new Option(year + '년', year)));
+}
+
+// 렌더링
+function renderEmployees(data) {
+    const tbody = document.getElementById('employeeTableBody');
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><i class="fas fa-users"></i><h3>등록된 직원이 없습니다</h3></td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = data.map(emp => {
+        const avatar = `<div class="avatar">${emp.name.substring(0,2)}</div>`;
+        const wage = emp.employment_type === '일용직' ? formatCurrency(emp.hourly_rate) + '/시간' : formatCurrency(emp.monthly_salary) + '/월';
+        const statusClass = emp.status === '재직' ? 'badge-active' : 'badge-inactive';
+        
+        return `
+            <tr>
+                <td>${avatar}</td>
+                <td><strong>${emp.name}</strong></td>
+                <td>${emp.department}</td>
+                <td>${emp.employment_type}</td>
+                <td>${emp.phone}</td>
+                <td>${wage}</td>
+                <td style="text-align: center;"><span class="badge ${statusClass}">${emp.status}</span></td>
+                <td style="text-align: center;">
+                    <div class="action-btns">
+                        <button class="btn btn-success" style="font-size: 13px; padding: 8px 16px;" onclick="openPayrollModal('${emp.id}')" ${emp.status !== '재직' ? 'disabled' : ''}>
+                            <i class="fas fa-money-bill-wave"></i> 급여
+                        </button>
+                        <button class="btn-icon" onclick="openEmployeeModal('${emp.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon" onclick="deleteEmployee('${emp.id}')" style="color: #e74c3c;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderPayments(data) {
+    const tbody = document.getElementById('paymentTableBody');
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-state"><i class="fas fa-file-invoice"></i><h3>급여 지급 내역이 없습니다</h3></td></tr>';
+        return;
+    }
+    
+    data.sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
+    
+    tbody.innerHTML = data.map(pay => {
+        const reportBadge = pay.is_reported === '신고' ? '<span class="badge badge-active">신고</span>' : '<span class="badge badge-inactive">미신고</span>';
+        
+        return `
+            <tr>
+                <td>${formatDate(pay.payment_date)}</td>
+                <td><strong>${pay.employee_name}</strong></td>
+                <td>${pay.employment_type}</td>
+                <td>${pay.work_hours || '-'}시간</td>
+                <td style="text-align: right;">${formatCurrency(pay.base_salary)}</td>
+                <td style="text-align: right;">${formatCurrency(pay.deductions)}</td>
+                <td style="text-align: right;"><strong>${formatCurrency(pay.net_pay)}</strong></td>
+                <td style="text-align: center;">${reportBadge}</td>
+                <td style="text-align: center;">
+                    <button class="btn-icon" onclick="deletePayment('${pay.id}')" style="color: #e74c3c;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// 필터링
+function filterEmployees() {
+    const search = document.getElementById('searchEmployee').value.toLowerCase();
+    const status = document.getElementById('filterStatus').value;
+    const department = document.getElementById('filterDepartment').value;
+    const type = document.getElementById('filterEmploymentType').value;
+    
+    const filtered = employees.filter(emp => {
+        return (!search || emp.name.toLowerCase().includes(search) || emp.phone.includes(search)) &&
+               (!status || emp.status === status) &&
+               (!department || emp.department === department) &&
+               (!type || emp.employment_type === type);
+    });
+    
+    renderEmployees(filtered);
+}
+
+function filterPayments() {
+    const search = document.getElementById('searchPayment').value.toLowerCase();
+    const year = document.getElementById('filterPaymentYear').value;
+    const month = document.getElementById('filterPaymentMonth').value;
+    
+    const filtered = payments.filter(pay => {
+        return (!search || pay.employee_name.toLowerCase().includes(search)) &&
+               (!year || pay.payment_year === parseInt(year)) &&
+               (!month || pay.payment_month === parseInt(month));
+    });
+    
+    renderPayments(filtered);
+}
+
+// 탭 전환
+function switchTab(tab) {
+    currentTab = tab;
+    
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.closest('.tab').classList.add('active');
+    
+    document.getElementById('employeesTab').style.display = tab === 'employees' ? 'block' : 'none';
+    document.getElementById('paymentsTab').style.display = tab === 'payments' ? 'block' : 'none';
+}
+
+// 통계 업데이트
+function updateStatistics() {
+    const activeEmployees = employees.filter(emp => emp.status === '재직').length;
+    document.getElementById('totalEmployees').textContent = `${activeEmployees}명`;
+    
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const monthlyPayments = payments.filter(pay => pay.payment_year === currentYear && pay.payment_month === currentMonth);
+    
+    const totalPayment = monthlyPayments.reduce((sum, pay) => sum + (pay.net_pay || 0), 0);
+    document.getElementById('totalPayment').textContent = formatCurrency(totalPayment);
+    
+    const totalHours = monthlyPayments.reduce((sum, pay) => sum + (pay.work_hours || 0), 0);
+    document.getElementById('totalHours').textContent = totalHours.toFixed(1) + '시간';
+    
+    const dailyEmp = employees.filter(emp => emp.employment_type === '일용직' && emp.hourly_rate);
+    const monthlyEmp = employees.filter(emp => emp.employment_type === '상용직' && emp.monthly_salary);
+    
+    let avgWage = '-';
+    if (dailyEmp.length > 0 || monthlyEmp.length > 0) {
+        const avgDaily = dailyEmp.length > 0 ? dailyEmp.reduce((sum, emp) => sum + emp.hourly_rate, 0) / dailyEmp.length : 0;
+        const avgMonthly = monthlyEmp.length > 0 ? monthlyEmp.reduce((sum, emp) => sum + emp.monthly_salary, 0) / monthlyEmp.length : 0;
+        
+        avgWage = '';
+        if (avgDaily > 0) avgWage += `시급 ${formatCurrency(avgDaily)}`;
+        if (avgMonthly > 0) {
+            if (avgWage) avgWage += ' / ';
+            avgWage += `월급 ${formatCurrency(avgMonthly)}`;
+        }
+    }
+    document.getElementById('averageWage').textContent = avgWage;
+}
+
+// 모달
+function openEmployeeModal(employeeId) {
+    const modal = document.getElementById('employeeModal');
+    const form = document.getElementById('employeeForm');
+    form.reset();
+    
+    if (employeeId) {
+        const emp = employees.find(e => e.id === employeeId);
+        if (emp) {
+            document.getElementById('modalTitle').textContent = '직원 정보 수정';
+            document.getElementById('employeeId').value = emp.id;
+            document.getElementById('employeeName').value = emp.name;
+            document.getElementById('employeeDepartment').value = emp.department;
+            document.getElementById('employeePhone').value = emp.phone;
+            document.getElementById('employmentType').value = emp.employment_type;
+            document.getElementById('hourlyRate').value = emp.hourly_rate;
+            document.getElementById('monthlySalary').value = emp.monthly_salary;
+            document.getElementById('bankAccount').value = emp.bank_account;
+            document.getElementById('hireDate').value = emp.hire_date;
+            document.getElementById('resignDate').value = emp.resign_date || '';
+            document.getElementById('employeeStatus').value = emp.status;
+            toggleSalaryFields();
+        }
+    } else {
+        document.getElementById('modalTitle').textContent = '직원 등록';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('hireDate').value = today;
+    }
+    
+    modal.style.display = 'block';
+}
+
+function openPayrollModal(employeeId) {
+    openEmployeeModal(employeeId);
+    document.getElementById('modalTitle').textContent = '급여 지급';
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('paymentDate').value = today;
+    setTimeout(() => document.getElementById('workHours').focus(), 300);
+}
+
+function closeEmployeeModal() {
+    document.getElementById('employeeModal').style.display = 'none';
+}
+
+function toggleSalaryFields() {
+    const type = document.getElementById('employmentType').value;
+    const hourlyGroup = document.getElementById('hourlyRateGroup');
+    const monthlyGroup = document.getElementById('monthlySalaryGroup');
+    const hourlyInput = document.getElementById('hourlyRate');
+    const monthlyInput = document.getElementById('monthlySalary');
+    
+    if (type === '일용직') {
+        hourlyGroup.style.display = 'block';
+        monthlyGroup.style.display = 'none';
+        hourlyInput.required = true;
+        monthlyInput.required = false;
+    } else if (type === '상용직') {
+        hourlyGroup.style.display = 'none';
+        monthlyGroup.style.display = 'block';
+        hourlyInput.required = false;
+        monthlyInput.required = true;
+    } else {
+        hourlyGroup.style.display = 'none';
+        monthlyGroup.style.display = 'none';
+    }
+    
+    calculatePayroll();
+}
+
+function calculatePayroll() {
+    const type = document.getElementById('employmentType').value;
+    const hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+    const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+    const workHours = parseFloat(document.getElementById('workHours').value) || 0;
+    
+    let baseSalary = 0;
+    let deductions = 0;
+    
+    if (type === '일용직') {
+        baseSalary = hourlyRate * workHours;
+        deductions = Math.round(baseSalary * 0.009);
+    } else if (type === '상용직') {
+        baseSalary = monthlySalary;
+        const nationalPension = Math.round(baseSalary * 0.045);
+        const healthInsurance = Math.round(baseSalary * 0.03545);
+        const longTermCare = Math.round(healthInsurance * 0.1295);
+        const employmentInsurance = Math.round(baseSalary * 0.009);
+        deductions = nationalPension + healthInsurance + longTermCare + employmentInsurance;
+    }
+    
+    const netPay = baseSalary - deductions;
+    
+    document.getElementById('baseSalary').value = Math.round(baseSalary);
+    document.getElementById('deductions').value = Math.round(deductions);
+    document.getElementById('netPay').value = Math.round(netPay);
+}
+
+function saveEmployee() {
+    const name = document.getElementById('employeeName').value.trim();
+    const department = document.getElementById('employeeDepartment').value.trim();
+    const phone = document.getElementById('employeePhone').value.trim();
+    const type = document.getElementById('employmentType').value;
+    const hireDate = document.getElementById('hireDate').value;
+    
+    if (!name || !department || !phone || !type || !hireDate) {
+        alert('필수 항목을 모두 입력해주세요.');
+        return;
+    }
+    
+    const hourlyRate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+    const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+    
+    if (type === '일용직' && hourlyRate <= 0) {
+        alert('일용직은 시급을 입력해야 합니다.');
+        return;
+    }
+    
+    if (type === '상용직' && monthlySalary <= 0) {
+        alert('상용직은 월급을 입력해야 합니다.');
+        return;
+    }
+    
+    const employeeData = {
+        name, department, phone,
+        employment_type: type,
+        hourly_rate: hourlyRate,
+        monthly_salary: monthlySalary,
+        bank_account: document.getElementById('bankAccount').value.trim(),
+        hire_date: hireDate,
+        resign_date: document.getElementById('resignDate').value || null,
+        status: document.getElementById('employeeStatus').value
+    };
+    
+    const employeeId = document.getElementById('employeeId').value;
+    let savedId = employeeId;
+    
+    if (employeeId) {
+        const index = employees.findIndex(emp => emp.id === employeeId);
+        if (index !== -1) {
+            employees[index] = { ...employees[index], ...employeeData };
+        }
+    } else {
+        savedId = 'emp-' + Date.now();
+        employeeData.id = savedId;
+        employees.push(employeeData);
+    }
+    
+    localStorage.setItem('demo_employees', JSON.stringify(employees));
+    
+    const paymentDate = document.getElementById('paymentDate').value;
+    const workHours = parseFloat(document.getElementById('workHours').value) || 0;
+    const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
+    
+    if (paymentDate && (workHours > 0 || baseSalary > 0)) {
+        const paymentData = {
+            id: 'pay-' + Date.now(),
+            employee_id: savedId,
+            employee_name: name,
+            employment_type: type,
+            payment_date: paymentDate,
+            payment_year: parseInt(document.getElementById('paymentYear').value),
+            payment_month: parseInt(document.getElementById('paymentMonth').value),
+            work_hours: workHours,
+            hourly_rate: hourlyRate,
+            monthly_salary: monthlySalary,
+            base_salary: baseSalary,
+            deductions: parseFloat(document.getElementById('deductions').value) || 0,
+            net_pay: parseFloat(document.getElementById('netPay').value) || 0,
+            is_reported: document.getElementById('isReported').value,
+            notes: document.getElementById('notes').value.trim()
+        };
+        
+        payments.push(paymentData);
+        localStorage.setItem('demo_payments', JSON.stringify(payments));
+        showSuccess(employeeId ? '직원 정보와 급여가 저장되었습니다!' : '새 직원과 급여가 등록되었습니다!');
+    } else {
+        showSuccess(employeeId ? '직원 정보가 수정되었습니다!' : '새 직원이 등록되었습니다!');
+    }
+    
+    closeEmployeeModal();
+    loadEmployees();
+    loadPayments();
+}
+
+function deleteEmployee(employeeId) {
+    const emp = employees.find(e => e.id === employeeId);
+    if (!emp || !confirm(`${emp.name} 직원을 삭제하시겠습니까?`)) return;
+    
+    employees = employees.filter(e => e.id !== employeeId);
+    payments = payments.filter(p => p.employee_id !== employeeId);
+    
+    localStorage.setItem('demo_employees', JSON.stringify(employees));
+    localStorage.setItem('demo_payments', JSON.stringify(payments));
+    
+    showSuccess('직원이 삭제되었습니다.');
+    loadEmployees();
+    loadPayments();
+}
+
+function deletePayment(paymentId) {
+    if (!confirm('급여 내역을 삭제하시겠습니까?')) return;
+    
+    payments = payments.filter(p => p.id !== paymentId);
+    localStorage.setItem('demo_payments', JSON.stringify(payments));
+    
+    showSuccess('급여 내역이 삭제되었습니다.');
+    loadPayments();
+    updateStatistics();
+}
+
+function exportToExcel() {
+    const data = currentTab === 'employees' ? employees : payments;
+    if (data.length === 0) {
+        alert('내보낼 데이터가 없습니다.');
+        return;
+    }
+    
+    const headers = currentTab === 'employees' 
+        ? ['이름', '부서', '고용형태', '연락처', '시급', '월급', '입사일', '상태']
+        : ['지급일', '직원명', '고용형태', '근무시간', '기본급', '공제액', '지급액', '신고여부'];
+    
+    const rows = data.map(item => 
+        currentTab === 'employees'
+            ? [item.name, item.department, item.employment_type, item.phone, item.hourly_rate, item.monthly_salary, item.hire_date, item.status]
+            : [item.payment_date, item.employee_name, item.employment_type, item.work_hours, item.base_salary, item.deductions, item.net_pay, item.is_reported]
+    );
+    
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell || ''}"`).join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${currentTab === 'employees' ? '직원목록' : '급여내역'}_${formatDate(new Date())}.csv`;
+    link.click();
+    
+    showSuccess('엑셀 파일이 다운로드되었습니다!');
+}
+
+window.onclick = function(event) {
+    if (event.target.id === 'employeeModal') {
+        closeEmployeeModal();
+    }
+};
+    </script>
+</body>
+</html>

@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>직원 관리 및 인건비 결산 - 초정 가계부 (최종완성)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --purple: #a855f7;
+            --pink: #ec4899;
+            --indigo: #6366f1;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.18);
+            --shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.24);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #667eea 75%, #764ba2 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 20s ease infinite;
+            min-height: 100vh;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientFlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 32px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 48px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-30px, 30px); }
+        }
+
+        .header-content { position: relative; z-index: 1; }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .app-header h1 {
+            font-size: 36px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .app-header h1 i {
+            font-size: 42px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .demo-badge {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 700;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .app-subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Noto Sans KR', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before { width: 300px; height: 300px; }
+        .btn:active { transform: scale(0.96); }
+        .btn i, .btn span { position: relative; z-index: 1; }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-sm { padding: 8px 16px; font-size: 13px; border-radius: 8px; }
+
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            padding: 40px 48px;
+            background: linear-gradient(to bottom, #f9fafb 0%, #ffffff 100%);
+        }
+
+        .stat-card {
+            background: white;
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--color) 0%, transparent 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--color);
+        }
+
+        .stat-card[data-type="employees"] { --color: #667eea; }
+        .stat-card[data-type="monthly"] { --color: #10b981; }
+        .stat-card[data-type="hours"] { --color: #f59e0b; }
+        .stat-card[data-type="average"] { --color: #ec4899; }
+
+        .stat-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--color), var(--color-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card[data-type="employees"] .stat-icon { --color: #667eea; --color-dark: #5568d3; }
+        .stat-card[data-type="monthly"] .stat-icon { --color: #10b981; --color-dark: #059669; }
+        .stat-card[data-type="hours"] .stat-icon { --color: #f59e0b; --color-dark: #d97706; }
+        .stat-card[data-type="average"] .stat-icon { --color: #ec4899; --color-dark: #db2777; }
+
+        .stat-icon i { font-size: 36px; color: white; }
+
+        .stat-info h3 {
+            font-size: 15px;
+            color: #6b7280;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 900;
+            color: #1f2937;
+            line-height: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .stat-unit { font-size: 18px; font-weight: 600; color: #9ca3af; }
+
+        .tab-navigation {
+            display: flex;
+            gap: 8px;
+            padding: 24px 48px;
+            background: white;
+            border-bottom: 2px solid #e5e7eb;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 16px 32px;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            position: relative;
+        }
+
+        .tab-button:hover { background: #f3f4f6; color: var(--primary); }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .filters-section {
+            padding: 32px 48px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .filter-group { display: flex; flex-direction: column; gap: 8px; }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-group label i { color: var(--primary); }
+
+        .search-input, select {
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Noto Sans KR', sans-serif;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .search-input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .employees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+            padding: 40px 48px;
+        }
+
+        .employee-card {
+            background: white;
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #f3f4f6;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .employee-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .employee-card:hover::before { transform: translateX(0); }
+
+        .employee-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .employee-header { display: flex; gap: 20px; margin-bottom: 24px; }
+
+        .employee-photo {
+            width: 90px;
+            height: 90px;
+            border-radius: 18px;
+            object-fit: cover;
+            border: 4px solid #f3f4f6;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .employee-basic-info { flex: 1; }
+
+        .employee-name {
+            font-size: 22px;
+            font-weight: 900;
+            color: #1f2937;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.active {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #047857;
+        }
+
+        .status-badge.inactive {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #b91c1c;
+        }
+
+        .status-badge.paid {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .employee-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .employee-meta-item { display: flex; align-items: center; gap: 8px; }
+        .employee-meta-item i { width: 20px; color: var(--primary); }
+
+        .employee-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 14px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item { display: flex; flex-direction: column; gap: 4px; }
+
+        .detail-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value { font-size: 15px; font-weight: 700; color: #1f2937; }
+
+        .employee-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .payments-section { padding: 40px 48px; }
+
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 20px 16px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 20px 16px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 15px;
+            color: #374151;
+        }
+
+        tr:hover { background: #f9fafb; }
+
+        .amount-cell {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--success);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-30px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body { padding: 32px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group { margin-bottom: 24px; }
+        .form-group.full-width { grid-column: 1 / -1; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group label i { color: var(--primary); }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Noto Sans KR', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        .photo-upload-area {
+            border: 3px dashed #e5e7eb;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9fafb;
+        }
+
+        .photo-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .photo-upload-area i {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .photo-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 16px;
+            margin: 16px auto 0;
+            display: none;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .calculation-box {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 24px;
+            border-radius: 16px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .calc-row:last-child { margin-bottom: 0; }
+        .calc-label { color: #6b7280; font-weight: 500; }
+        .calc-value { font-weight: 700; color: #1f2937; font-size: 16px; }
+        .calc-divider { border: none; border-top: 2px solid #e5e7eb; margin: 16px 0; }
+
+        .calc-total {
+            font-size: 18px !important;
+            color: var(--success) !important;
+            font-weight: 900 !important;
+        }
+
+        .deduction-details {
+            background: #fef3c7;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 12px;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .deduction-details h4 {
+            font-size: 14px;
+            color: #92400e;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .deduction-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #78350f;
+            margin-bottom: 6px;
+        }
+
+        .deduction-item:last-child { margin-bottom: 0; }
+
+        .deduction-formula {
+            font-size: 11px;
+            color: #a16207;
+            font-style: italic;
+            margin-left: 12px;
+        }
+
+        .bank-select-group {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 12px;
+        }
+
+        .modal-footer {
+            padding: 24px 32px;
+            background: #f9fafb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .empty-state { text-align: center; padding: 80px 20px; }
+        .empty-state i { font-size: 80px; color: #d1d5db; margin-bottom: 24px; }
+
+        .empty-state h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 32px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            background: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            z-index: 2000;
+            animation: slideInRight 0.3s;
+            border-left: 5px solid var(--primary);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast i { font-size: 24px; }
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        .toast-content { flex: 1; }
+
+        .toast-title {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .toast-message { font-size: 14px; color: #6b7280; }
+
+        @media (max-width: 768px) {
+            body { padding: 8px; }
+            .app-container { border-radius: 24px; }
+            .app-header { padding: 24px; }
+            .app-header h1 { font-size: 26px; }
+            .stats-dashboard { padding: 24px; grid-template-columns: 1fr; }
+            .tab-navigation { padding: 16px 24px; }
+            .filters-section { padding: 24px; }
+            .filter-grid { grid-template-columns: 1fr; }
+            .employees-grid { grid-template-columns: 1fr; padding: 24px; }
+            .payments-section { padding: 24px; }
+            .table-container { overflow-x: auto; }
+            table { min-width: 800px; }
+            .modal-content { margin: 20px; }
+            .form-row { grid-template-columns: 1fr; }
+            .bank-select-group { grid-template-columns: 1fr; }
+        }
+
+        ::-webkit-scrollbar { width: 12px; height: 12px; }
+        ::-webkit-scrollbar-track { background: #f3f4f6; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            border: 2px solid #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-top">
+                    <div>
+                        <h1>
+                            <i class="fas fa-users-cog"></i>
+                            직원 관리 및 인건비 결산
+                            <span class="demo-badge"><i class="fas fa-check-double"></i> FINAL</span>
+                        </h1>
+                        <p class="app-subtitle">
+                            <i class="fas fa-rocket"></i>
+                            초정 가계부 - 완벽한 인건비 관리 솔루션 (최종 완성판)
+                        </p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openEmployeeModal()">
+                            <i class="fas fa-user-plus"></i>
+                            <span>직원 등록</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportToExcel()">
+                            <i class="fas fa-file-excel"></i>
+                            <span>엑셀 다운로드</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="stats-dashboard">
+            <div class="stat-card" data-type="employees">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <h3>총 직원 수</h3>
+                    <div class="stat-value">
+                        <span id="totalEmployees">0</span>
+                        <span class="stat-unit">명</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card" data-type="monthly">
+                <div class="stat-icon"><i class="fas fa-won-sign"></i></div>
+                <div class="stat-info">
+                    <h3>이번 달 지급액</h3>
+                    <div class="stat-value">
+                        <span id="monthlyTotal">0</span>
+                        <span class="stat-unit">원</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card" data-type="hours">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-info">
+                    <h3>총 근무 시간</h3>
+                    <div class="stat-value">
+                        <span id="totalHours">0</span>
+                        <span class="stat-unit">시간</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card" data-type="average">
+                <div class="stat-icon"><i class="fas fa-calculator"></i></div>
+                <div class="stat-info">
+                    <h3>평균 시급</h3>
+                    <div class="stat-value">
+                        <span id="averageWage">0</span>
+                        <span class="stat-unit">원</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <nav class="tab-navigation">
+            <button class="tab-button active" data-tab="employees" onclick="switchTab('employees')">
+                <i class="fas fa-users"></i>
+                <span>직원 목록</span>
+            </button>
+            <button class="tab-button" data-tab="payments" onclick="switchTab('payments')">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>급여 내역</span>
+            </button>
+        </nav>
+
+        <section class="filters-section">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> 검색</label>
+                    <input type="text" class="search-input" id="searchInput" 
+                           placeholder="이름, 전화번호로 검색..." onkeyup="filterEmployees()">
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-building"></i> 부서</label>
+                    <select id="departmentFilter" onchange="filterEmployees()">
+                        <option value="">전체</option>
+                        <option value="관리">관리</option>
+                        <option value="현장">현장</option>
+                        <option value="영업">영업</option>
+                        <option value="기술">기술</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-toggle-on"></i> 재직 상태</label>
+                    <select id="statusFilter" onchange="filterEmployees()">
+                        <option value="">전체</option>
+                        <option value="active">재직</option>
+                        <option value="inactive">퇴직</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-briefcase"></i> 고용 형태</label>
+                    <select id="employmentTypeFilter" onchange="filterEmployees()">
+                        <option value="">전체</option>
+                        <option value="일용직">일용직</option>
+                        <option value="정규직">정규직</option>
+                        <option value="계약직">계약직</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <div id="employeesTab" class="tab-content">
+            <div class="employees-grid" id="employeesGrid"></div>
+        </div>
+
+        <div id="paymentsTab" class="tab-content" style="display: none;">
+            <section class="payments-section">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar"></i> 지급일</th>
+                                <th><i class="fas fa-user"></i> 직원명</th>
+                                <th><i class="fas fa-building"></i> 부서</th>
+                                <th><i class="fas fa-clock"></i> 근무시간</th>
+                                <th><i class="fas fa-calculator"></i> 지급액</th>
+                                <th><i class="fas fa-university"></i> 계좌</th>
+                                <th><i class="fas fa-cog"></i> 관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- 직원 등록/수정 모달 -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-user-edit"></i>
+                    <span id="modalTitle">직원 정보 관리</span>
+                </h2>
+                <button class="modal-close" onclick="closeEmployeeModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm">
+                    <input type="hidden" id="employeeId">
+                    
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-camera"></i> 사진</label>
+                        <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>클릭하여 사진 업로드</p>
+                            <small style="color: #9ca3af;">JPG, PNG (최대 5MB)</small>
+                        </div>
+                        <input type="file" id="photoInput" accept="image/*" style="display: none" onchange="previewPhoto(event)">
+                        <img id="photoPreview" class="photo-preview" alt="사진 미리보기">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> 이름 *</label>
+                            <input type="text" id="employeeName" required placeholder="홍길동">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-id-badge"></i> 사번</label>
+                            <input type="text" id="employeeNumber" placeholder="자동생성 또는 입력">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-building"></i> 부서 *</label>
+                            <select id="employeeDepartment" required>
+                                <option value="">선택하세요</option>
+                                <option value="관리">관리</option>
+                                <option value="경영지원팀">경영지원팀</option>
+                                <option value="현장">현장</option>
+                                <option value="영업">영업</option>
+                                <option value="기술">기술</option>
+                                <option value="개발지원팀">개발지원팀</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> 전화번호 *</label>
+                            <input type="tel" id="employeePhone" required placeholder="010-1234-5678">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-briefcase"></i> 고용 형태 *</label>
+                            <select id="employmentType" required onchange="handleEmploymentTypeChange()">
+                                <option value="">선택하세요</option>
+                                <option value="일용직">일용직</option>
+                                <option value="정규직">정규직</option>
+                                <option value="계약직">계약직</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-user-tag"></i> 직급</label>
+                            <input type="text" id="employeePosition" placeholder="사원, 대리, 과장 등">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-money-bill"></i> 시급 *</label>
+                            <input type="number" id="hourlyWage" required placeholder="15000" onkeyup="calculatePaymentPreview()">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-clock"></i> 근무 시간</label>
+                            <input type="number" id="workHoursPreview" placeholder="160" onkeyup="calculatePaymentPreview()">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-alt"></i> 입사일 *</label>
+                            <input type="date" id="hireDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar-times"></i> 퇴사일</label>
+                            <input type="date" id="terminationDate">
+                        </div>
+                    </div>
+
+                    <!-- 계좌 정보 -->
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-university"></i> 계좌 정보</label>
+                        <div class="bank-select-group">
+                            <select id="bankName">
+                                <option value="">은행 선택</option>
+                                <optgroup label="시중은행">
+                                    <option value="KB국민은행">KB국민은행</option>
+                                    <option value="신한은행">신한은행</option>
+                                    <option value="우리은행">우리은행</option>
+                                    <option value="하나은행">하나은행</option>
+                                    <option value="SC제일은행">SC제일은행</option>
+                                    <option value="한국씨티은행">한국씨티은행</option>
+                                </optgroup>
+                                <optgroup label="특수은행">
+                                    <option value="NH농협은행">NH농협은행</option>
+                                    <option value="IBK기업은행">IBK기업은행</option>
+                                    <option value="KDB산업은행">KDB산업은행</option>
+                                    <option value="수협은행">수협은행</option>
+                                </optgroup>
+                                <optgroup label="지방은행">
+                                    <option value="부산은행">부산은행</option>
+                                    <option value="경남은행">경남은행</option>
+                                    <option value="대구은행">대구은행</option>
+                                    <option value="광주은행">광주은행</option>
+                                    <option value="전북은행">전북은행</option>
+                                    <option value="제주은행">제주은행</option>
+                                </optgroup>
+                                <optgroup label="인터넷은행">
+                                    <option value="카카오뱅크">카카오뱅크</option>
+                                    <option value="토스뱅크">토스뱅크</option>
+                                    <option value="케이뱅크">케이뱅크</option>
+                                </optgroup>
+                                <optgroup label="저축은행">
+                                    <option value="우체국">우체국</option>
+                                    <option value="새마을금고">새마을금고</option>
+                                    <option value="신협">신협</option>
+                                </optgroup>
+                            </select>
+                            <input type="text" id="accountNumber" placeholder="계좌번호 입력 (예: 123-456-789012)">
+                        </div>
+                    </div>
+
+                    <!-- 급여 계산 미리보기 -->
+                    <div id="paymentPreviewSection" class="form-group full-width" style="display: none;">
+                        <label><i class="fas fa-calculator"></i> 급여 계산 미리보기</label>
+                        <div class="calculation-box">
+                            <div class="calc-row">
+                                <span class="calc-label">기본급:</span>
+                                <span class="calc-value" id="previewBasePay">0원</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label" style="color: #ef4444;">공제액:</span>
+                                <span class="calc-value" style="color: #ef4444;" id="previewDeductions">0원</span>
+                            </div>
+                            <div id="previewDeductionDetails" class="deduction-details" style="display: none;">
+                                <h4>📋 공제 내역 (4대보험)</h4>
+                                <div class="deduction-item">
+                                    <span>국민연금 (4.5%):</span>
+                                    <span id="previewPension">0원</span>
+                                </div>
+                                <div class="deduction-formula">계산식: 기본급 × 4.5%</div>
+                                <div class="deduction-item">
+                                    <span>건강보험 (3.545%):</span>
+                                    <span id="previewHealth">0원</span>
+                                </div>
+                                <div class="deduction-formula">계산식: 기본급 × 3.545%</div>
+                                <div class="deduction-item">
+                                    <span>장기요양 (건강보험의 12.95%):</span>
+                                    <span id="previewLongTerm">0원</span>
+                                </div>
+                                <div class="deduction-formula">계산식: 건강보험료 × 12.95%</div>
+                                <div class="deduction-item">
+                                    <span>고용보험 (0.9%):</span>
+                                    <span id="previewEmployment">0원</span>
+                                </div>
+                                <div class="deduction-formula">계산식: 기본급 × 0.9%</div>
+                            </div>
+                            <div id="previewDailyDeduction" class="deduction-details" style="display: none;">
+                                <h4>📋 공제 내역 (일용직)</h4>
+                                <div class="deduction-item">
+                                    <span>고용보험 (0.9%):</span>
+                                    <span id="previewDailyEmployment">0원</span>
+                                </div>
+                                <div class="deduction-formula">계산식: 기본급 × 0.9%</div>
+                            </div>
+                            <hr class="calc-divider">
+                            <div class="calc-row">
+                                <span class="calc-label calc-total">실 지급액:</span>
+                                <span class="calc-value calc-total" id="previewNetPay">0원</span>
+                            </div>
+                            <div class="calc-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #e5e7eb;">
+                                <span class="calc-label">사업용 계좌 (713,520원 한도):</span>
+                                <span class="calc-value" id="previewBusinessPay">0원</span>
+                            </div>
+                            <div class="calc-row">
+                                <span class="calc-label">개인 계좌 (나머지 금액):</span>
+                                <span class="calc-value" id="previewPersonalPay">0원</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-sticky-note"></i> 메모</label>
+                        <textarea id="employeeNotes" placeholder="추가 정보를 입력하세요..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeEmployeeModal()">
+                    <i class="fas fa-times"></i>
+                    <span>취소</span>
+                </button>
+                <button class="btn btn-success" onclick="saveEmployee()">
+                    <i class="fas fa-save"></i>
+                    <span id="saveButtonText">저장</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let employees = [];
+        let payments = [];
+        let currentTab = 'employees';
+        let currentEditingEmployee = null;
+        let currentPhotoFile = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 직원 관리 시스템 초기화 시작 (최종 완성판)');
+            
+            loadData();
+            
+            if (employees.length === 0) {
+                createSampleData();
+            }
+            
+            updateStatistics();
+            renderEmployees();
+            renderPayments();
+            
+            const today = new Date().toISOString().split('T')[0];
+            if (document.getElementById('hireDate')) {
+                document.getElementById('hireDate').value = today;
+            }
+            
+            console.log('✅ 초기화 완료', {
+                직원수: employees.length,
+                급여내역: payments.length
+            });
+
+            showToast('success', '시스템 준비 완료', '🎉 최종 완성 버전 - 모든 기능 사용 가능!');
+        });
+
+        function loadData() {
+            const storedEmployees = localStorage.getItem('employees_final');
+            const storedPayments = localStorage.getItem('payments_final');
+            
+            if (storedEmployees) {
+                employees = JSON.parse(storedEmployees);
+            }
+            if (storedPayments) {
+                payments = JSON.parse(storedPayments);
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('employees_final', JSON.stringify(employees));
+            localStorage.setItem('payments_final', JSON.stringify(payments));
+        }
+
+        function createSampleData() {
+            employees = [
+                {
+                    id: 'emp1',
+                    employeeNumber: '073542',
+                    name: '홍길동',
+                    department: '개발지원팀',
+                    position: '팀장',
+                    phone: '010-1234-5678',
+                    employmentType: '일용직',
+                    hourlyWage: 10300,
+                    hireDate: '2023-01-15',
+                    terminationDate: null,
+                    photo: 'https://via.placeholder.com/150/667eea/ffffff?text=홍길동',
+                    bankName: '부산은행',
+                    accountNumber: '123-456-789012',
+                    notes: '',
+                    lastPaymentDate: '2026-03-11'
+                },
+                {
+                    id: 'emp2',
+                    employeeNumber: 'EMP002',
+                    name: '김철수',
+                    department: '관리',
+                    position: '과장',
+                    phone: '010-2345-6789',
+                    employmentType: '정규직',
+                    hourlyWage: 15000,
+                    hireDate: '2022-03-20',
+                    terminationDate: null,
+                    photo: 'https://via.placeholder.com/150/764ba2/ffffff?text=김철수',
+                    bankName: '경남은행',
+                    accountNumber: '234-567-890123',
+                    notes: '관리팀 리더',
+                    lastPaymentDate: '2026-03-01'
+                },
+                {
+                    id: 'emp3',
+                    employeeNumber: 'EMP003',
+                    name: '이영희',
+                    department: '경영지원팀',
+                    position: '대리',
+                    phone: '010-3456-7890',
+                    employmentType: '정규직',
+                    hourlyWage: 18000,
+                    hireDate: '2021-05-10',
+                    terminationDate: null,
+                    photo: 'https://via.placeholder.com/150/f093fb/ffffff?text=이영희',
+                    bankName: '카카오뱅크',
+                    accountNumber: '345-678-901234',
+                    notes: '',
+                    lastPaymentDate: '2026-03-05'
+                },
+                {
+                    id: 'emp4',
+                    employeeNumber: 'EMP004',
+                    name: '박민수',
+                    department: '현장',
+                    position: '',
+                    phone: '010-4567-8901',
+                    employmentType: '일용직',
+                    hourlyWage: 14000,
+                    hireDate: '2023-06-15',
+                    terminationDate: null,
+                    photo: 'https://via.placeholder.com/150/10b981/ffffff?text=박민수',
+                    bankName: '토스뱅크',
+                    accountNumber: '456-789-012345',
+                    notes: '현장 작업자'
+                },
+                {
+                    id: 'emp5',
+                    employeeNumber: 'EMP005',
+                    name: '정수진',
+                    department: '기술',
+                    position: '차장',
+                    phone: '010-5678-9012',
+                    employmentType: '계약직',
+                    hourlyWage: 25000,
+                    hireDate: '2020-11-01',
+                    terminationDate: null,
+                    photo: 'https://via.placeholder.com/150/3b82f6/ffffff?text=정수진',
+                    bankName: 'NH농협은행',
+                    accountNumber: '567-890-123456',
+                    notes: '기술 책임자',
+                    lastPaymentDate: '2026-03-10'
+                }
+            ];
+
+            payments = [
+                {
+                    id: 'pay1',
+                    employeeId: 'emp1',
+                    paymentDate: '2026-03-11',
+                    workHours: 180,
+                    basePay: 1854000,
+                    deductions: 16686,
+                    netPay: 1837314,
+                    businessAccountPay: 713520,
+                    personalAccountPay: 1123794,
+                    bankName: '부산은행',
+                    accountNumber: '123-456-789012',
+                    notes: '3월 급여'
+                },
+                {
+                    id: 'pay2',
+                    employeeId: 'emp2',
+                    paymentDate: '2026-03-01',
+                    workHours: 160,
+                    basePay: 2400000,
+                    deductions: 108000,
+                    netPay: 2292000,
+                    businessAccountPay: 713520,
+                    personalAccountPay: 1578480,
+                    bankName: '경남은행',
+                    accountNumber: '234-567-890123',
+                    notes: '3월 급여'
+                },
+                {
+                    id: 'pay3',
+                    employeeId: 'emp3',
+                    paymentDate: '2026-03-05',
+                    workHours: 170,
+                    basePay: 3060000,
+                    deductions: 137700,
+                    netPay: 2922300,
+                    businessAccountPay: 713520,
+                    personalAccountPay: 2208780,
+                    bankName: '카카오뱅크',
+                    accountNumber: '345-678-901234',
+                    notes: '3월 급여'
+                },
+                {
+                    id: 'pay4',
+                    employeeId: 'emp5',
+                    paymentDate: '2026-03-10',
+                    workHours: 160,
+                    basePay: 4000000,
+                    deductions: 180000,
+                    netPay: 3820000,
+                    businessAccountPay: 713520,
+                    personalAccountPay: 3106480,
+                    bankName: 'NH농협은행',
+                    accountNumber: '567-890-123456',
+                    notes: '3월 급여'
+                }
+            ];
+
+            saveData();
+        }
+
+        function updateStatistics() {
+            const activeEmployees = employees.filter(e => !e.terminationDate);
+            const currentMonth = new Date().toISOString().slice(0, 7);
+            const currentMonthPayments = payments.filter(p => p.paymentDate.startsWith(currentMonth));
+            
+            const totalMonthly = currentMonthPayments.reduce((sum, p) => sum + p.netPay, 0);
+            const totalHours = currentMonthPayments.reduce((sum, p) => sum + p.workHours, 0);
+            
+            const averageWage = activeEmployees.length > 0
+                ? Math.round(activeEmployees.reduce((sum, e) => sum + e.hourlyWage, 0) / activeEmployees.length)
+                : 0;
+
+            animateValue('totalEmployees', 0, activeEmployees.length, 1000);
+            animateValue('monthlyTotal', 0, totalMonthly, 1000, true);
+            animateValue('totalHours', 0, totalHours, 1000);
+            animateValue('averageWage', 0, averageWage, 1000, true);
+        }
+
+        function animateValue(id, start, end, duration, isCurrency = false) {
+            const element = document.getElementById(id);
+            if (!element) return;
+            
+            const range = end - start;
+            const increment = range / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                element.textContent = isCurrency ? formatCurrency(Math.round(current)) : Math.round(current);
+            }, 16);
+        }
+
+        function renderEmployees() {
+            const grid = document.getElementById('employeesGrid');
+            const filteredEmployees = getFilteredEmployees();
+            
+            if (filteredEmployees.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-users-slash"></i>
+                        <h3>직원이 없습니다</h3>
+                        <p>새 직원을 등록하여 시작하세요</p>
+                        <button class="btn btn-primary btn-lg" onclick="openEmployeeModal()">
+                            <i class="fas fa-user-plus"></i>
+                            <span>직원 등록하기</span>
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = filteredEmployees.map(employee => {
+                const isActive = !employee.terminationDate;
+                const employeePayments = payments.filter(p => p.employeeId === employee.id);
+                const totalPaid = employeePayments.reduce((sum, p) => sum + p.netPay, 0);
+                const totalHours = employeePayments.reduce((sum, p) => sum + p.workHours, 0);
+                
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const hasPaidThisMonth = employee.lastPaymentDate && employee.lastPaymentDate.startsWith(currentMonth);
+                
+                let statusBadges = '';
+                if (isActive) {
+                    statusBadges += '<span class="status-badge active">재직</span>';
+                    if (hasPaidThisMonth) {
+                        statusBadges += '<span class="status-badge paid">지급완료</span>';
+                    }
+                } else {
+                    statusBadges += '<span class="status-badge inactive">퇴직</span>';
+                }
+                
+                return `
+                    <div class="employee-card">
+                        <div class="employee-header">
+                            <img src="${employee.photo || 'https://via.placeholder.com/150/667eea/ffffff?text=No+Photo'}" 
+                                 alt="${employee.name}" 
+                                 class="employee-photo"
+                                 onerror="this.src='https://via.placeholder.com/150/667eea/ffffff?text=No+Photo'">
+                            <div class="employee-basic-info">
+                                <div class="employee-name">
+                                    ${employee.name}
+                                    ${statusBadges}
+                                </div>
+                                <div class="employee-meta">
+                                    ${employee.employeeNumber ? `
+                                    <div class="employee-meta-item">
+                                        <i class="fas fa-id-badge"></i>
+                                        <span>사번: ${employee.employeeNumber}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div class="employee-meta-item">
+                                        <i class="fas fa-building"></i>
+                                        <span>${employee.department}${employee.position ? ' / ' + employee.position : ''}</span>
+                                    </div>
+                                    <div class="employee-meta-item">
+                                        <i class="fas fa-phone"></i>
+                                        <span>${employee.phone}</span>
+                                    </div>
+                                    <div class="employee-meta-item">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span>${employee.employmentType}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="employee-details">
+                            <div class="detail-item">
+                                <span class="detail-label">시급</span>
+                                <span class="detail-value">${formatCurrency(employee.hourlyWage)}원</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">입사일</span>
+                                <span class="detail-value">${formatDate(employee.hireDate)}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">총 지급액</span>
+                                <span class="detail-value">${formatCurrency(totalPaid)}원</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">총 근무시간</span>
+                                <span class="detail-value">${totalHours}시간</span>
+                            </div>
+                            ${employee.bankName && employee.accountNumber ? `
+                            <div class="detail-item" style="grid-column: 1 / -1;">
+                                <span class="detail-label">계좌정보</span>
+                                <span class="detail-value">${employee.bankName} ${employee.accountNumber}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="employee-actions">
+                            <button class="btn btn-info btn-sm" onclick="editEmployee('${employee.id}')">
+                                <i class="fas fa-edit"></i>
+                                <span>수정 / 급여지급</span>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteEmployee('${employee.id}')">
+                                <i class="fas fa-trash"></i>
+                                <span>삭제</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPayments() {
+            const tbody = document.getElementById('paymentsTableBody');
+            
+            if (payments.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 60px 20px;">
+                            <div class="empty-state">
+                                <i class="fas fa-receipt"></i>
+                                <h3>급여 내역이 없습니다</h3>
+                                <p>직원에게 급여를 지급하여 기록을 시작하세요</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const sortedPayments = [...payments].sort((a, b) => 
+                new Date(b.paymentDate) - new Date(a.paymentDate)
+            );
+            
+            tbody.innerHTML = sortedPayments.map(payment => {
+                const employee = employees.find(e => e.id === payment.employeeId);
+                if (!employee) return '';
+                
+                const accountInfo = payment.bankName && payment.accountNumber 
+                    ? `${payment.bankName}<br>${payment.accountNumber}` 
+                    : '<span style="color: #9ca3af;">미등록</span>';
+                
+                return `
+                    <tr>
+                        <td>${formatDate(payment.paymentDate)}</td>
+                        <td><strong>${employee.name}</strong>${employee.employeeNumber ? '<br><small>' + employee.employeeNumber + '</small>' : ''}</td>
+                        <td>${employee.department}</td>
+                        <td>${payment.workHours}시간</td>
+                        <td class="amount-cell">${formatCurrency(payment.netPay)}원</td>
+                        <td style="font-size: 13px;">${accountInfo}</td>
+                        <td>
+                            <button class="btn btn-info btn-sm" onclick="viewPaymentDetail('${payment.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePayment('${payment.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function getFilteredEmployees() {
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            const department = document.getElementById('departmentFilter')?.value || '';
+            const status = document.getElementById('statusFilter')?.value || '';
+            const employmentType = document.getElementById('employmentTypeFilter')?.value || '';
+            
+            return employees.filter(employee => {
+                const matchesSearch = !searchTerm || 
+                    employee.name.toLowerCase().includes(searchTerm) ||
+                    employee.phone.includes(searchTerm) ||
+                    (employee.employeeNumber && employee.employeeNumber.toLowerCase().includes(searchTerm));
+                
+                const matchesDepartment = !department || employee.department === department;
+                
+                const matchesStatus = !status || 
+                    (status === 'active' && !employee.terminationDate) ||
+                    (status === 'inactive' && employee.terminationDate);
+                
+                const matchesEmploymentType = !employmentType || employee.employmentType === employmentType;
+                
+                return matchesSearch && matchesDepartment && matchesStatus && matchesEmploymentType;
+            });
+        }
+
+        function filterEmployees() {
+            renderEmployees();
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            
+            document.getElementById('employeesTab').style.display = tab === 'employees' ? 'block' : 'none';
+            document.getElementById('paymentsTab').style.display = tab === 'payments' ? 'block' : 'none';
+        }
+
+        function openEmployeeModal(employeeId = null) {
+            const modal = document.getElementById('employeeModal');
+            const title = document.getElementById('modalTitle');
+            const saveButtonText = document.getElementById('saveButtonText');
+            
+            if (employeeId) {
+                const employee = employees.find(e => e.id === employeeId);
+                if (!employee) return;
+                
+                title.textContent = '직원 정보 수정 / 급여 지급';
+                saveButtonText.textContent = '저장 및 급여 지급';
+                
+                document.getElementById('employeeId').value = employee.id;
+                document.getElementById('employeeNumber').value = employee.employeeNumber || '';
+                document.getElementById('employeeName').value = employee.name;
+                document.getElementById('employeeDepartment').value = employee.department;
+                document.getElementById('employeePosition').value = employee.position || '';
+                document.getElementById('employeePhone').value = employee.phone;
+                document.getElementById('employmentType').value = employee.employmentType;
+                document.getElementById('hourlyWage').value = employee.hourlyWage;
+                document.getElementById('hireDate').value = employee.hireDate;
+                document.getElementById('terminationDate').value = employee.terminationDate || '';
+                document.getElementById('bankName').value = employee.bankName || '';
+                document.getElementById('accountNumber').value = employee.accountNumber || '';
+                document.getElementById('employeeNotes').value = employee.notes || '';
+                
+                if (employee.photo) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = employee.photo;
+                    preview.style.display = 'block';
+                }
+                
+                currentEditingEmployee = employee;
+            } else {
+                title.textContent = '직원 등록';
+                saveButtonText.textContent = '저장';
+                document.getElementById('employeeForm').reset();
+                document.getElementById('employeeId').value = '';
+                document.getElementById('photoPreview').style.display = 'none';
+                document.getElementById('paymentPreviewSection').style.display = 'none';
+                currentEditingEmployee = null;
+                currentPhotoFile = null;
+                
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('hireDate').value = today;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeEmployeeModal() {
+            document.getElementById('employeeModal').classList.remove('active');
+            document.getElementById('employeeForm').reset();
+            document.getElementById('paymentPreviewSection').style.display = 'none';
+            document.getElementById('previewDeductionDetails').style.display = 'none';
+            document.getElementById('previewDailyDeduction').style.display = 'none';
+            currentEditingEmployee = null;
+            currentPhotoFile = null;
+        }
+
+        function previewPhoto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('error', '파일 크기 초과', '5MB 이하의 파일만 업로드 가능합니다');
+                return;
+            }
+            
+            currentPhotoFile = file;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const preview = document.getElementById('photoPreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function calculatePaymentPreview() {
+            const hourlyWage = parseFloat(document.getElementById('hourlyWage').value) || 0;
+            const workHours = parseFloat(document.getElementById('workHoursPreview').value) || 0;
+            const employmentType = document.getElementById('employmentType').value;
+            
+            if (hourlyWage === 0 || workHours === 0) {
+                document.getElementById('paymentPreviewSection').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('paymentPreviewSection').style.display = 'block';
+            
+            const basePay = workHours * hourlyWage;
+            
+            let deductions = 0;
+            let nationalPension = 0;
+            let healthInsurance = 0;
+            let longTermCare = 0;
+            let employmentInsurance = 0;
+            
+            if (employmentType === '일용직') {
+                employmentInsurance = Math.round(basePay * 0.009);
+                deductions = employmentInsurance;
+                document.getElementById('previewDeductionDetails').style.display = 'none';
+                document.getElementById('previewDailyDeduction').style.display = 'block';
+                document.getElementById('previewDailyEmployment').textContent = formatCurrency(employmentInsurance) + '원';
+            } else {
+                nationalPension = Math.round(basePay * 0.045);
+                healthInsurance = Math.round(basePay * 0.03545);
+                longTermCare = Math.round(healthInsurance * 0.1295);
+                employmentInsurance = Math.round(basePay * 0.009);
+                deductions = nationalPension + healthInsurance + longTermCare + employmentInsurance;
+                
+                document.getElementById('previewPension').textContent = formatCurrency(nationalPension) + '원';
+                document.getElementById('previewHealth').textContent = formatCurrency(healthInsurance) + '원';
+                document.getElementById('previewLongTerm').textContent = formatCurrency(longTermCare) + '원';
+                document.getElementById('previewEmployment').textContent = formatCurrency(employmentInsurance) + '원';
+                document.getElementById('previewDeductionDetails').style.display = 'block';
+                document.getElementById('previewDailyDeduction').style.display = 'none';
+            }
+            
+            const netPay = basePay - deductions;
+            
+            const threshold = 713520;
+            let businessAccountPay = 0;
+            let personalAccountPay = netPay;
+            
+            if (netPay > threshold) {
+                businessAccountPay = threshold;
+                personalAccountPay = netPay - threshold;
+            }
+            
+            document.getElementById('previewBasePay').textContent = formatCurrency(basePay) + '원';
+            document.getElementById('previewDeductions').textContent = formatCurrency(deductions) + '원';
+            document.getElementById('previewNetPay').textContent = formatCurrency(netPay) + '원';
+            document.getElementById('previewBusinessPay').textContent = formatCurrency(businessAccountPay) + '원';
+            document.getElementById('previewPersonalPay').textContent = formatCurrency(personalAccountPay) + '원';
+        }
+
+        function saveEmployee() {
+            const form = document.getElementById('employeeForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const employeeData = {
+                id: document.getElementById('employeeId').value || `emp${Date.now()}`,
+                employeeNumber: document.getElementById('employeeNumber').value || `EMP${Date.now().toString().slice(-6)}`,
+                name: document.getElementById('employeeName').value,
+                department: document.getElementById('employeeDepartment').value,
+                position: document.getElementById('employeePosition').value || '',
+                phone: document.getElementById('employeePhone').value,
+                employmentType: document.getElementById('employmentType').value,
+                hourlyWage: parseInt(document.getElementById('hourlyWage').value),
+                hireDate: document.getElementById('hireDate').value,
+                terminationDate: document.getElementById('terminationDate').value || null,
+                bankName: document.getElementById('bankName').value || '',
+                accountNumber: document.getElementById('accountNumber').value || '',
+                notes: document.getElementById('employeeNotes').value,
+                photo: document.getElementById('photoPreview').src || null
+            };
+            
+            const existingIndex = employees.findIndex(e => e.id === employeeData.id);
+            
+            const workHours = parseFloat(document.getElementById('workHoursPreview').value) || 0;
+            if (workHours > 0) {
+                const basePay = workHours * employeeData.hourlyWage;
+                let deductions = 0;
+                
+                if (employeeData.employmentType === '일용직') {
+                    deductions = Math.round(basePay * 0.009);
+                } else {
+                    const nationalPension = Math.round(basePay * 0.045);
+                    const healthInsurance = Math.round(basePay * 0.03545);
+                    const longTermCare = Math.round(healthInsurance * 0.1295);
+                    const employmentInsurance = Math.round(basePay * 0.009);
+                    deductions = nationalPension + healthInsurance + longTermCare + employmentInsurance;
+                }
+                
+                const netPay = basePay - deductions;
+                const threshold = 713520;
+                const businessAccountPay = netPay > threshold ? threshold : 0;
+                const personalAccountPay = netPay > threshold ? netPay - threshold : netPay;
+                
+                const today = new Date().toISOString().split('T')[0];
+                const paymentData = {
+                    id: `pay${Date.now()}`,
+                    employeeId: employeeData.id,
+                    paymentDate: today,
+                    workHours: workHours,
+                    basePay: basePay,
+                    deductions: deductions,
+                    netPay: netPay,
+                    businessAccountPay: businessAccountPay,
+                    personalAccountPay: personalAccountPay,
+                    bankName: employeeData.bankName,
+                    accountNumber: employeeData.accountNumber,
+                    notes: document.getElementById('employeeNotes').value
+                };
+                
+                payments.push(paymentData);
+                employeeData.lastPaymentDate = today;
+                
+                showToast('success', '급여 지급 완료', `${employeeData.name}님에게 ${formatCurrency(netPay)}원이 지급되었습니다`);
+            }
+            
+            if (existingIndex >= 0) {
+                employees[existingIndex] = employeeData;
+                if (workHours === 0) {
+                    showToast('success', '수정 완료', `${employeeData.name}님의 정보가 수정되었습니다`);
+                }
+            } else {
+                employees.push(employeeData);
+                showToast('success', '등록 완료', `${employeeData.name}님이 등록되었습니다`);
+            }
+            
+            saveData();
+            updateStatistics();
+            renderEmployees();
+            renderPayments();
+            closeEmployeeModal();
+        }
+
+        function editEmployee(employeeId) {
+            openEmployeeModal(employeeId);
+        }
+
+        function deleteEmployee(employeeId) {
+            const employee = employees.find(e => e.id === employeeId);
+            if (!employee) return;
+            
+            if (!confirm(`${employee.name}님을 삭제하시겠습니까?\n관련된 모든 급여 내역도 함께 삭제됩니다.`)) {
+                return;
+            }
+            
+            employees = employees.filter(e => e.id !== employeeId);
+            payments = payments.filter(p => p.employeeId !== employeeId);
+            
+            saveData();
+            updateStatistics();
+            renderEmployees();
+            renderPayments();
+            
+            showToast('success', '삭제 완료', `${employee.name}님이 삭제되었습니다`);
+        }
+
+        function viewPaymentDetail(paymentId) {
+            const payment = payments.find(p => p.id === paymentId);
+            if (!payment) return;
+            
+            const employee = employees.find(e => e.id === payment.employeeId);
+            if (!employee) return;
+            
+            const accountInfo = payment.bankName && payment.accountNumber 
+                ? `${payment.bankName} ${payment.accountNumber}` 
+                : '계좌 정보 없음';
+            
+            let deductionDetail = '';
+            if (employee.employmentType === '일용직') {
+                deductionDetail = `
+공제 내역 (일용직):
+- 고용보험 (0.9%): ${formatCurrency(payment.deductions)}원
+  계산식: ${formatCurrency(payment.basePay)} × 0.9% = ${formatCurrency(payment.deductions)}`;
+            } else {
+                const nationalPension = Math.round(payment.basePay * 0.045);
+                const healthInsurance = Math.round(payment.basePay * 0.03545);
+                const longTermCare = Math.round(healthInsurance * 0.1295);
+                const employmentInsurance = Math.round(payment.basePay * 0.009);
+                
+                deductionDetail = `
+공제 내역 (4대보험):
+- 국민연금 (4.5%): ${formatCurrency(nationalPension)}원
+  계산식: ${formatCurrency(payment.basePay)} × 4.5%
+- 건강보험 (3.545%): ${formatCurrency(healthInsurance)}원
+  계산식: ${formatCurrency(payment.basePay)} × 3.545%
+- 장기요양 (12.95%): ${formatCurrency(longTermCare)}원
+  계산식: ${formatCurrency(healthInsurance)} × 12.95%
+- 고용보험 (0.9%): ${formatCurrency(employmentInsurance)}원
+  계산식: ${formatCurrency(payment.basePay)} × 0.9%
+- 총 공제액: ${formatCurrency(payment.deductions)}원`;
+            }
+            
+            alert(`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 급여명세서
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 직원 정보
+직원명: ${employee.name}
+사번: ${employee.employeeNumber || '-'}
+부서: ${employee.department}
+직급: ${employee.position || '-'}
+고용형태: ${employee.employmentType}
+지급일: ${formatDate(payment.paymentDate)}
+
+⏰ 근무 내역
+근무시간: ${payment.workHours}시간
+시급: ${formatCurrency(employee.hourlyWage)}원
+
+💰 지급 내역
+기본급: ${formatCurrency(payment.basePay)}원
+${deductionDetail}
+
+실지급액: ${formatCurrency(payment.netPay)}원
+
+🏦 계좌 분할
+사업용 계좌: ${formatCurrency(payment.businessAccountPay)}원
+개인 계좌: ${formatCurrency(payment.personalAccountPay)}원
+
+📌 계좌 정보: ${accountInfo}
+
+📝 메모: ${payment.notes || '없음'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            `.trim());
+        }
+
+        function deletePayment(paymentId) {
+            if (!confirm('이 급여 내역을 삭제하시겠습니까?')) {
+                return;
+            }
+            
+            const payment = payments.find(p => p.id === paymentId);
+            if (payment) {
+                const employee = employees.find(e => e.id === payment.employeeId);
+                if (employee && employee.lastPaymentDate === payment.paymentDate) {
+                    delete employee.lastPaymentDate;
+                }
+            }
+            
+            payments = payments.filter(p => p.id !== paymentId);
+            
+            saveData();
+            updateStatistics();
+            renderEmployees();
+            renderPayments();
+            
+            showToast('success', '삭제 완료', '급여 내역이 삭제되었습니다');
+        }
+
+        function exportToExcel() {
+            let csvContent = '\uFEFF';
+            
+            csvContent += '초정 육전밀면 갈비탕 전문점\n';
+            csvContent += `작성일: ${new Date().toISOString().split('T')[0]}\n\n`;
+            
+            csvContent += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csvContent += '=== 직원 목록 ===\n';
+            csvContent += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csvContent += '사번,이름,부서,직급,전화번호,고용형태,시급,입사일,퇴사일,은행명,계좌번호,메모\n';
+            
+            employees.forEach(emp => {
+                csvContent += `${emp.employeeNumber || ''},${emp.name},${emp.department},${emp.position || ''},${emp.phone},${emp.employmentType},${emp.hourlyWage},${emp.hireDate},${emp.terminationDate || ''},${emp.bankName || ''},${emp.accountNumber || ''},${emp.notes || ''}\n`;
+            });
+            
+            csvContent += '\n\n';
+            csvContent += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csvContent += '=== 급여 내역 ===\n';
+            csvContent += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+            csvContent += '지급일,사번,직원명,부서,직급,고용형태,근무시간,시급,기본급,공제액,실지급액,사업용계좌,개인계좌,은행명,계좌번호,메모\n';
+            
+            payments.forEach(pay => {
+                const employee = employees.find(e => e.id === pay.employeeId);
+                if (employee) {
+                    csvContent += `${pay.paymentDate},${employee.employeeNumber || ''},${employee.name},${employee.department},${employee.position || ''},${employee.employmentType},${pay.workHours},${employee.hourlyWage},${pay.basePay},${pay.deductions},${pay.netPay},${pay.businessAccountPay},${pay.personalAccountPay},${pay.bankName || ''},${pay.accountNumber || ''},${pay.notes || ''}\n`;
+                }
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const filename = `초정_급여대장_${new Date().toISOString().split('T')[0]}.csv`;
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('success', '내보내기 완료', 'Excel 파일이 다운로드되었습니다');
+        }
+
+        function formatCurrency(amount) {
+            return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+        }
+
+        function handleEmploymentTypeChange() {
+            calculatePaymentPreview();
+        }
+
+        function showToast(type, title, message) {
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        };
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+            
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                if (document.getElementById('employeeModal').classList.contains('active')) {
+                    saveEmployee();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
