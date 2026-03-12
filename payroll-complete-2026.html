@@ -256,32 +256,34 @@
 
         /* Chart Container */
         .chart-section {
-            padding: 24px 32px;
+            padding: 12px 16px;
             background: white;
         }
 
         .chart-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-            margin-top: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
         }
 
         .chart-card {
             background: #f9fafb;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 8px;
             box-shadow: var(--shadow-sm);
+            max-height: 180px;
+            overflow: hidden;
         }
 
         .chart-card h3 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: #1f2937;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
         .example-section {
@@ -899,18 +901,18 @@
             <div class="chart-grid">
                 <div class="chart-card">
                     <h3><i class="fas fa-calendar-alt"></i> 월간 급여 지급 현황 (2026년)</h3>
-                    <canvas id="monthlyChart" style="height: 200px;"></canvas>
+                    <canvas id="monthlyChart" style="height: 120px; max-height: 120px;"></canvas>
                 </div>
                 <div class="chart-card">
                     <h3><i class="fas fa-calendar-week"></i> 연간 누적 급여 지급 추이</h3>
-                    <canvas id="yearlyChart" style="height: 200px;"></canvas>
+                    <canvas id="yearlyChart" style="height: 120px; max-height: 120px;"></canvas>
                 </div>
             </div>
 
             <div style="margin-top: 32px;">
                 <div class="chart-card">
                     <h3><i class="fas fa-chart-pie"></i> 이번 달 부서별 급여 비율</h3>
-                    <canvas id="departmentChart" style="height: 180px;"></canvas>
+                    <canvas id="departmentChart" style="height: 100px; max-height: 100px;"></canvas>
                 </div>
             </div>
         </section>
@@ -1409,14 +1411,16 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false,
                     plugins: {
-                        legend: { display: true },
+                        legend: { display: false },
                         title: {
                             display: true,
-                            text: '월간 급여 총액 (2026년)',
-                            font: { size: 16, weight: 'bold' }
+                            text: '월간 급여',
+                            font: { size: 12, weight: 'bold' }
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     return '지급액: ' + formatCurrency(context.parsed.y) + '원';
@@ -1428,11 +1432,18 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
+                                font: { size: 10 },
+                                maxTicksLimit: 5,
                                 callback: function(value) {
-                                    if (value >= 10000000) return (value / 10000000) + '천만원';
-                                    if (value >= 1000000) return (value / 1000000) + '백만원';
-                                    return formatCurrency(value) + '원';
+                                    if (value >= 10000000) return (value / 10000000) + '천만';
+                                    if (value >= 1000000) return (value / 1000000) + '백만';
+                                    return formatCurrency(value);
                                 }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 10 }
                             }
                         }
                     }
@@ -1467,9 +1478,18 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
                     plugins: {
-                        legend: { position: 'bottom' },
+                        legend: { 
+                            display: false,
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 10 }
+                            }
+                        },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     return context.label + ': ' + formatCurrency(context.parsed) + '만원';
@@ -1501,26 +1521,30 @@
                 data: {
                     labels: yearlyLabels,
                     datasets: [{
-                        label: '연간 누적 급여',
+                        label: '연간 누적',
                         data: yearlyData,
                         borderColor: 'rgb(102, 126, 234)',
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         tension: 0.3,
                         fill: true,
-                        borderWidth: 3
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        pointHoverRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: false,
                     plugins: {
-                        legend: { display: true },
+                        legend: { display: false },
                         title: {
                             display: true,
-                            text: '연간 누적 급여 총액 (2026년)',
-                            font: { size: 16, weight: 'bold' }
+                            text: '연간 누적',
+                            font: { size: 12, weight: 'bold' }
                         },
                         tooltip: {
+                            enabled: true,
                             callbacks: {
                                 label: function(context) {
                                     return '누적액: ' + formatCurrency(context.parsed.y) + '원';
@@ -1532,11 +1556,18 @@
                         y: {
                             beginAtZero: true,
                             ticks: {
+                                font: { size: 10 },
+                                maxTicksLimit: 5,
                                 callback: function(value) {
-                                    if (value >= 10000000) return (value / 10000000) + '천만원';
-                                    if (value >= 1000000) return (value / 1000000) + '백만원';
-                                    return formatCurrency(value) + '원';
+                                    if (value >= 10000000) return (value / 10000000) + '천만';
+                                    if (value >= 1000000) return (value / 1000000) + '백만';
+                                    return formatCurrency(value);
                                 }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: { size: 10 }
                             }
                         }
                     }
