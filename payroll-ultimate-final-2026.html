@@ -1946,7 +1946,7 @@
                 
                 // Row 1: 제목 (B1:Z1 병합)
                 const data = [];
-                data.push(['', `${monthStr} 직원급여 지급대장`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+                data.push(['', `🏢 초정 육전밀면 갈비탕 전문점 | ${monthStr} 직원급여 지급대장`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
                 
                 // Row 2-3: 빈 줄 (A2:Z3 병합)
                 data.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
@@ -2013,6 +2013,9 @@
                     const totalDeductions = insurance.totalDeductions;
                     const subtotal = pay.basePay; // 기본급 소계
                     
+                    // 행 번호 (수식에서 사용)
+                    const excelRow = rowIndex + 1; // Excel은 1부터 시작
+                    
                     data.push([
                         '', // A
                         emp.employeeNumber || rowIndex - 6, // B: 사원번호
@@ -2029,17 +2032,17 @@
                         0, // M: 상여
                         0, // N: 연장근로수당
                         0, // O: 주휴수당
-                        subtotal, // P: 소계 (=L+M+N+O)
-                        insurance.healthInsurance, // Q: 건강보험
-                        insurance.longTermCare, // R: 장기요양보험
-                        insurance.nationalPension, // S: 국민연금
-                        insurance.employmentInsurance, // T: 고용보험
+                        { f: `SUM(L${excelRow}:O${excelRow})` }, // P: 소계 (=SUM(L:O))
+                        { f: `ROUNDDOWN(SUM(L${excelRow}:O${excelRow})*3.545%,-1)` }, // Q: 건강보험
+                        { f: `ROUNDDOWN(Q${excelRow}*12.81%,-1)` }, // R: 장기요양보험
+                        { f: `ROUND(SUM(L${excelRow}:O${excelRow})*4.5%,-1)` }, // S: 국민연금
+                        { f: `ROUND(SUM(L${excelRow}:O${excelRow})*0.9%,-1)` }, // T: 고용보험
                         0, // U: 갑근세
-                        0, // V: 주민세
+                        { f: `ROUNDDOWN(U${excelRow}*10%,-1)` }, // V: 주민세
                         0, // W: 가지급금
                         0, // X: 기타
-                        totalDeductions, // Y: 소계 (=Q+R+S+T+U+V+W+X)
-                        pay.netPay || 0 // Z: 실지급액 (=P-Y)
+                        { f: `SUM(Q${excelRow}:X${excelRow})` }, // Y: 공제 소계
+                        { f: `P${excelRow}-Y${excelRow}` } // Z: 실지급액 (=P-Y)
                     ]);
                     rowIndex++;
                 });
