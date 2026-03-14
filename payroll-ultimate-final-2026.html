@@ -1594,6 +1594,12 @@
                                 <span class="detail-label">총 근무시간</span>
                                 <span class="detail-value">${empPay.reduce((sum, p) => sum + p.workHours, 0)}시간</span>
                             </div>
+                            ${emp.lastWorkHours !== undefined && emp.lastWorkHours > 0 ? `
+                            <div class="detail-item">
+                                <span class="detail-label">⏰ 입력된 근무시간</span>
+                                <span class="detail-value" style="color: #667eea; font-weight: 700;">${emp.lastWorkHours}시간</span>
+                            </div>
+                            ` : ''}
                             ${emp.bankName ? `
                             <div class="detail-item" style="grid-column: 1/-1;">
                                 <span class="detail-label">계좌</span>
