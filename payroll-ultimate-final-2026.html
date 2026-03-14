@@ -23,8 +23,8 @@
     <!-- External Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- Chart.js 4.4.1 - DISABLED FOR STABILITY -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script> -->
+    <!-- Chart.js 4.4.1 - 차트 활성화 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <!-- SheetJS for Excel Export (WITH STYLES) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <!-- jsPDF for PDF Generation -->
@@ -1234,7 +1234,7 @@
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             document.getElementById('hireDate').value = new Date().toISOString().split('T')[0];
             showToast('success', '시스템 준비 완료', 'PREMIUM 2026 버전 로드됨');
         });
@@ -1848,7 +1848,7 @@
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             closeEmployeeModal();
             showToast('success', '급여 지급 완료', `${empData.name}님 ${formatCurrency(netPay)}원 지급`);
         }
@@ -1878,7 +1878,7 @@
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             showToast('success', '삭제 완료', `${emp.name}님 삭제`);
         }
 
@@ -1929,7 +1929,7 @@
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             showToast('success', '삭제 완료', '급여 내역 삭제');
         }
 
@@ -2268,16 +2268,16 @@
                 htmlContent += '</style>';
                 htmlContent += '</head><body>';
                 
+                // ✅ 헤더는 한 번만 출력 (PDF 이중 출력 수정)
+                htmlContent += '<div class="header">';
+                htmlContent += '<h1>초정 육전밀면 갈비탕 전문점</h1>';
+                htmlContent += `<p>${currentMonth} 급여명세서</p>`;
+                htmlContent += `<p>발행일: ${new Date().toLocaleDateString('ko-KR')}</p>`;
+                htmlContent += '</div>';
+                
                 monthPayments.forEach((p, idx) => {
                     const emp = employees.find(e => e.id === p.employeeId);
                     if (!emp) return;
-                    
-                    // 각 명세서마다 헤더 추가
-                    htmlContent += '<div class="header">';
-                    htmlContent += '<h1>초정 육전밀면 갈비탕 전문점</h1>';
-                    htmlContent += `<p>${currentMonth} 급여명세서</p>`;
-                    htmlContent += `<p>발행일: ${new Date().toLocaleDateString('ko-KR')}</p>`;
-                    htmlContent += '</div>';
                     
                     const insurance = calculate2026SocialInsurance(p.basePay, emp.employmentType);
                     
