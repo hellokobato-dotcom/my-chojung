@@ -1635,11 +1635,24 @@
 
         function openEmployeeModal(empId = null) {
             const modal = document.getElementById('employeeModal');
+            
+            // ✅ 항상 폼 초기화부터 시작 (깨끗한 상태)
+            document.getElementById('employeeForm').reset();
+            document.getElementById('employeeId').value = '';
+            document.getElementById('photoPreview').src = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('paymentPreviewSection').style.display = 'none';
+            document.getElementById('workHoursPreview').value = '';
+            
             if (empId) {
                 const emp = employees.find(e => e.id === empId);
-                if (!emp) return;
+                if (!emp) {
+                    console.error(`❌ 직원을 찾을 수 없음: ${empId}`);
+                    return;
+                }
+                console.log(`📝 직원 모달 열기: ${emp.name} (ID: ${emp.id})`);
                 document.getElementById('modalTitle').textContent = '직원 정보 수정';
-                document.getElementById('employeeId').value = emp.id;
+                document.getElementById('employeeId').value = emp.id;  // ✅ ID 명확히 설정
                 document.getElementById('employeeNumber').value = emp.employeeNumber || '';
                 document.getElementById('employeeName').value = emp.name;
                 document.getElementById('employeeDepartment').value = emp.department;
@@ -1657,14 +1670,16 @@
                     document.getElementById('photoPreview').style.display = 'block';
                 }
             } else {
+                console.log('🆕 신규 직원 등록 모달');
                 document.getElementById('modalTitle').textContent = '직원 등록';
-                document.getElementById('employeeForm').reset();
-                document.getElementById('employeeId').value = ''; // Clear ID for new employee
-                document.getElementById('photoPreview').src = '';
-                document.getElementById('photoPreview').style.display = 'none';
+                // ✅ 이미 위에서 reset 했으므로 중복 제거
+                // document.getElementById('employeeForm').reset();
+                // document.getElementById('employeeId').value = '';
+                // document.getElementById('photoPreview').src = '';
+                // document.getElementById('photoPreview').style.display = 'none';
                 document.getElementById('hireDate').value = new Date().toISOString().split('T')[0];
-                document.getElementById('paymentPreviewSection').style.display = 'none';
-                document.getElementById('workHoursPreview').value = '';
+                // document.getElementById('paymentPreviewSection').style.display = 'none';
+                // document.getElementById('workHoursPreview').value = '';
             }
             modal.classList.add('active');
         }
@@ -1672,11 +1687,13 @@
         function closeEmployeeModal() {
             document.getElementById('employeeModal').classList.remove('active');
             document.getElementById('paymentPreviewSection').style.display = 'none';
-            document.getElementById('employeeForm').reset();
-            document.getElementById('employeeId').value = '';
-            document.getElementById('photoPreview').src = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('workHoursPreview').value = '';
+            // ✅ 폼 리셋은 하지 않음 - openEmployeeModal에서 처리
+            // document.getElementById('employeeForm').reset();  // 제거
+            // document.getElementById('employeeId').value = '';  // 제거
+            // ✅ 사진만 초기화 (비주얼만)
+            // document.getElementById('photoPreview').src = '';
+            // document.getElementById('photoPreview').style.display = 'none';
+            // document.getElementById('workHoursPreview').value = '';
         }
 
         function previewPhoto(e) {
