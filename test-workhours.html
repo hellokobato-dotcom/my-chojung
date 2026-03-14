@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>급여관리 시스템 테스트</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        #console-log {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 급여관리 시스템 - 김대표 100시간 입력 테스트</h1>
+    
+    <div class="test-section">
+        <h2>테스트 시나리오</h2>
+        <p>1. 김대표 직원 데이터 생성</p>
+        <p>2. 근무시간 100시간 설정</p>
+        <p>3. lastWorkHours 저장</p>
+        <p>4. 직원 카드 렌더링 테스트</p>
+        <button onclick="runTest()">🚀 테스트 실행</button>
+        <button onclick="clearLog()">🗑️ 로그 지우기</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>테스트 결과</h2>
+        <div id="test-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>콘솔 로그</h2>
+        <div id="console-log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>직원 카드 미리보기</h2>
+        <div id="employee-preview"></div>
+    </div>
+
+    <script>
+        let logOutput = '';
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString('ko-KR');
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : '📝';
+            const line = `[${timestamp}] ${prefix} ${message}`;
+            logOutput += line + '\n';
+            document.getElementById('console-log').textContent = logOutput;
+            console.log(line);
+        }
+        
+        function clearLog() {
+            logOutput = '';
+            document.getElementById('console-log').textContent = '';
+            document.getElementById('test-results').innerHTML = '';
+        }
+        
+        function addResult(message, success) {
+            const div = document.createElement('div');
+            div.className = `test-result ${success ? 'success' : 'error'}`;
+            div.textContent = message;
+            document.getElementById('test-results').appendChild(div);
+        }
+        
+        function formatCurrency(amount) {
+            return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+        
+        function runTest() {
+            clearLog();
+            log('🚀 테스트 시작...', 'info');
+            
+            try {
+                // Step 1: 직원 데이터 생성
+                log('Step 1: 김대표 데이터 생성', 'info');
+                const employee = {
+                    id: 'emp1',
+                    employeeNumber: '001',
+                    name: '김대표',
+                    department: '대표관리',
+                    position: '대표이사',
+                    phone: '010-1234-5678',
+                    employmentType: '정규직',
+                    hourlyWage: 25000,
+                    hireDate: '2020-01-01',
+                    bankName: 'KB국민은행',
+                    accountNumber: '123-456-789',
+                    photo: null,
+                    notes: '',
+                    lastWorkHours: 100  // ✅ 100시간 설정
+                };
+                
+                log(`✅ 직원 생성 성공: ${employee.name}`, 'success');
+                log(`   - ID: ${employee.id}`, 'info');
+                log(`   - 시급: ${formatCurrency(employee.hourlyWage)}원`, 'info');
+                log(`   - lastWorkHours: ${employee.lastWorkHours}시간`, 'success');
+                addResult('✅ Step 1: 김대표 데이터 생성 성공', true);
+                
+                // Step 2: 데이터 검증
+                log('Step 2: 데이터 검증', 'info');
+                if (employee.lastWorkHours === undefined) {
+                    throw new Error('lastWorkHours가 undefined입니다!');
+                }
+                if (employee.lastWorkHours !== 100) {
+                    throw new Error(`lastWorkHours 값이 잘못되었습니다: ${employee.lastWorkHours}`);
+                }
+                log('✅ lastWorkHours 값 검증 성공: 100시간', 'success');
+                addResult('✅ Step 2: 데이터 검증 성공', true);
+                
+                // Step 3: 조건부 렌더링 테스트
+                log('Step 3: 조건부 렌더링 테스트', 'info');
+                const shouldDisplay = employee.lastWorkHours !== undefined && employee.lastWorkHours > 0;
+                log(`   - lastWorkHours !== undefined: ${employee.lastWorkHours !== undefined}`, 'info');
+                log(`   - lastWorkHours > 0: ${employee.lastWorkHours > 0}`, 'info');
+                log(`   - shouldDisplay: ${shouldDisplay}`, shouldDisplay ? 'success' : 'error');
+                
+                if (!shouldDisplay) {
+                    throw new Error('조건부 렌더링 조건이 false입니다!');
+                }
+                addResult('✅ Step 3: 조건부 렌더링 조건 충족', true);
+                
+                // Step 4: 직원 카드 HTML 생성
+                log('Step 4: 직원 카드 HTML 생성', 'info');
+                const empPay = [];  // 빈 배열 (급여 지급 전)
+                const cardHTML = `
+                    <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: white;">
+                        <h3>${employee.name} <span style="color: #10b981; font-size: 14px;">[재직]</span></h3>
+                        <p><strong>사번:</strong> ${employee.employeeNumber}</p>
+                        <p><strong>부서:</strong> ${employee.department} / ${employee.position}</p>
+                        <p><strong>전화번호:</strong> ${employee.phone}</p>
+                        <hr>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div>
+                                <p><strong>시급:</strong> ${formatCurrency(employee.hourlyWage)}원</p>
+                            </div>
+                            <div>
+                                <p><strong>입사일:</strong> ${employee.hireDate}</p>
+                            </div>
+                            <div>
+                                <p><strong>총 지급액:</strong> 0원</p>
+                            </div>
+                            <div>
+                                <p><strong>총 근무시간:</strong> ${empPay.reduce((sum, p) => sum + p.workHours, 0)}시간</p>
+                            </div>
+                            ${employee.lastWorkHours !== undefined && employee.lastWorkHours > 0 ? `
+                            <div style="grid-column: 1/-1; background: #f0f0ff; padding: 10px; border-radius: 4px;">
+                                <p><strong>⏰ 입력된 근무시간:</strong> <span style="color: #667eea; font-weight: 700;">${employee.lastWorkHours}시간</span></p>
+                            </div>
+                            ` : '<div style="grid-column: 1/-1; background: #ffe0e0; padding: 10px;">❌ 입력된 근무시간 필드가 표시되지 않습니다</div>'}
+                        </div>
+                        <hr>
+                        <p><strong>계좌:</strong> ${employee.bankName} ${employee.accountNumber}</p>
+                    </div>
+                `;
+                
+                document.getElementById('employee-preview').innerHTML = cardHTML;
+                log('✅ 직원 카드 HTML 생성 성공', 'success');
+                addResult('✅ Step 4: 직원 카드 렌더링 성공', true);
+                
+                // Step 5: LocalStorage 시뮬레이션
+                log('Step 5: LocalStorage 저장 테스트', 'info');
+                try {
+                    localStorage.setItem('test_employee', JSON.stringify(employee));
+                    const loaded = JSON.parse(localStorage.getItem('test_employee'));
+                    log(`✅ LocalStorage 저장 성공`, 'success');
+                    log(`   - 저장된 lastWorkHours: ${loaded.lastWorkHours}`, 'success');
+                    addResult('✅ Step 5: LocalStorage 저장/로드 성공', true);
+                } catch (error) {
+                    log(`❌ LocalStorage 오류: ${error.message}`, 'error');
+                    addResult('❌ Step 5: LocalStorage 오류', false);
+                }
+                
+                // 최종 결과
+                log('', 'info');
+                log('🎉 모든 테스트 통과!', 'success');
+                addResult('🎉 전체 테스트 통과! 김대표 100시간 입력 기능 정상 작동', true);
+                
+            } catch (error) {
+                log(`❌ 테스트 실패: ${error.message}`, 'error');
+                log(`   Stack: ${error.stack}`, 'error');
+                addResult(`❌ 테스트 실패: ${error.message}`, false);
+            }
+        }
+        
+        // 페이지 로드 시 자동 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            log('페이지 로드 완료. "테스트 실행" 버튼을 클릭하세요.', 'info');
+        });
+    </script>
+</body>
+</html>

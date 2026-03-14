@@ -1543,15 +1543,24 @@
         }
 
         function renderEmployees() {
-            const grid = document.getElementById('employeesGrid');
-            const filtered = getFilteredEmployees();
-            
-            if (filtered.length === 0) {
-                grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 80px;"><i class="fas fa-users-slash" style="font-size: 80px; color: #d1d5db;"></i><h3 style="margin-top: 24px;">직원이 없습니다</h3></div>';
-                return;
-            }
-            
-            grid.innerHTML = filtered.map(emp => {
+            try {
+                console.log('🎨 renderEmployees() 호출됨');
+                const grid = document.getElementById('employeesGrid');
+                if (!grid) {
+                    console.error('❌ employeesGrid 엘리먼트를 찾을 수 없습니다');
+                    return;
+                }
+                
+                const filtered = getFilteredEmployees();
+                console.log(`📊 필터링된 직원 수: ${filtered.length}명`);
+                
+                if (filtered.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 80px;"><i class="fas fa-users-slash" style="font-size: 80px; color: #d1d5db;"></i><h3 style="margin-top: 24px;">직원이 없습니다</h3></div>';
+                    return;
+                }
+                
+                grid.innerHTML = filtered.map((emp, index) => {
+                    try {
                 const isActive = !emp.terminationDate;
                 const empPay = payments.filter(p => p.employeeId === emp.id);
                 const totalPaid = empPay.reduce((sum, p) => sum + p.netPay, 0);
@@ -1594,7 +1603,7 @@
                                 <span class="detail-label">총 근무시간</span>
                                 <span class="detail-value">${empPay.reduce((sum, p) => sum + p.workHours, 0)}시간</span>
                             </div>
-                            ${emp.lastWorkHours !== undefined && emp.lastWorkHours > 0 ? `
+                            ${emp.lastWorkHours !== null && emp.lastWorkHours !== undefined && emp.lastWorkHours > 0 ? `
                             <div class="detail-item">
                                 <span class="detail-label">⏰ 입력된 근무시간</span>
                                 <span class="detail-value" style="color: #667eea; font-weight: 700;">${emp.lastWorkHours}시간</span>
@@ -1620,7 +1629,25 @@
                         </div>
                     </div>
                 `;
-            }).join('');
+                    } catch (empError) {
+                        console.error(`❌ 직원 카드 렌더링 오류 (ID: ${emp.id}, 이름: ${emp.name}):`, empError);
+                        return `<div class="employee-card" style="border: 2px solid #ef4444;">
+                            <p style="color: #ef4444;">⚠️ ${emp.name} 카드 렌더링 오류: ${empError.message}</p>
+                        </div>`;
+                    }
+                }).join('');
+                
+                console.log(`✅ 직원 ${filtered.length}명 렌더링 완료`);
+            } catch (error) {
+                console.error('❌ renderEmployees() 실행 중 오류:', error);
+                const grid = document.getElementById('employeesGrid');
+                if (grid) {
+                    grid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; background: #fee; color: #c00; text-align: center;">
+                        <h3>⚠️ 직원 목록 렌더링 오류</h3>
+                        <p>${error.message}</p>
+                    </div>`;
+                }
+            }
         }
 
         function renderPayments() {
