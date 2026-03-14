@@ -1228,14 +1228,24 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 시스템 초기화 시작...');
+            
             loadData();
-            if (employees.length === 0) createSampleData();
+            console.log(`📊 초기 데이터: 직원 ${employees.length}명, 급여 ${payments.length}건`);
+            
+            if (employees.length === 0) {
+                console.log('📝 샘플 데이터 생성 중...');
+                createSampleData();
+            }
+            
             updateStatistics();
             updateAlertBanner();
             renderEmployees();
             renderPayments();
             initializeCharts(); // ✅ 차트 활성화 2026-03-14
             document.getElementById('hireDate').value = new Date().toISOString().split('T')[0];
+            
+            console.log('✅ 시스템 초기화 완료!');
             showToast('success', '시스템 준비 완료', 'PREMIUM 2026 버전 로드됨');
         });
 
@@ -1795,15 +1805,22 @@
         }
 
         function saveEmployeeOnly() {
+            console.log('🔵 saveEmployeeOnly() 호출됨');
+            
             const form = document.getElementById('employeeForm');
             if (!form.checkValidity()) {
+                console.warn('⚠️ 폼 검증 실패 - 필수 항목을 확인하세요');
                 form.reportValidity();
                 return;
             }
             
+            console.log('✅ 폼 검증 통과');
+            
             // ✅ 기존 직원 ID 확인 (수정 모드인지 신규 등록인지 구분)
             const existingId = document.getElementById('employeeId').value;
             const isEdit = existingId && existingId.trim() !== '';
+            
+            console.log(`🔍 모드: ${isEdit ? '수정' : '신규 등록'}, ID: ${existingId || '없음'}`);
             
             const empData = {
                 id: isEdit ? existingId : `emp${Date.now()}`,  // 수정 시 기존 ID 유지
