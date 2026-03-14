@@ -23,8 +23,8 @@
     <!-- External Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- Chart.js 4.4.1 - DISABLED FOR STABILITY -->
-    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script> -->
+    <!-- Chart.js 4.4.1 - 차트 활성화 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <!-- SheetJS for Excel Export (WITH STYLES) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
     <!-- jsPDF for PDF Generation -->
@@ -1228,27 +1228,69 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 시스템 초기화 시작...');
+            
             loadData();
-            if (employees.length === 0) createSampleData();
+            console.log(`📊 초기 데이터: 직원 ${employees.length}명, 급여 ${payments.length}건`);
+            
+            if (employees.length === 0) {
+                console.log('📝 샘플 데이터 생성 중...');
+                createSampleData();
+            }
+            
             updateStatistics();
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             document.getElementById('hireDate').value = new Date().toISOString().split('T')[0];
+            
+            console.log('✅ 시스템 초기화 완료!');
             showToast('success', '시스템 준비 완료', 'PREMIUM 2026 버전 로드됨');
         });
 
         function loadData() {
-            const stored = localStorage.getItem('employees_premium_2026');
-            const storedPay = localStorage.getItem('payments_premium_2026');
-            if (stored) employees = JSON.parse(stored);
-            if (storedPay) payments = JSON.parse(storedPay);
+            try {
+                const stored = localStorage.getItem('employees_premium_2026');
+                const storedPay = localStorage.getItem('payments_premium_2026');
+                if (stored) {
+                    employees = JSON.parse(stored);
+                    console.log(`📂 직원 데이터 로드: ${employees.length}명`);
+                }
+                if (storedPay) {
+                    payments = JSON.parse(storedPay);
+                    console.log(`📂 급여 데이터 로드: ${payments.length}건`);
+                }
+                
+                // LocalStorage 사용량 체크
+                const totalSize = new Blob([stored || '', storedPay || '']).size;
+                const totalSizeMB = (totalSize / 1024 / 1024).toFixed(2);
+                console.log(`💾 LocalStorage 사용량: ${totalSizeMB} MB`);
+                
+                if (totalSize > 4 * 1024 * 1024) {  // 4MB 이상
+                    console.warn('⚠️ LocalStorage 사용량이 많습니다. 데이터를 내보내기 하세요.');
+                }
+            } catch (error) {
+                console.error('❌ 데이터 로드 실패:', error);
+                showToast('error', '로드 실패', '저장된 데이터를 불러올 수 없습니다');
+            }
         }
 
         function saveData() {
-            localStorage.setItem('employees_premium_2026', JSON.stringify(employees));
-            localStorage.setItem('payments_premium_2026', JSON.stringify(payments));
+            try {
+                localStorage.setItem('employees_premium_2026', JSON.stringify(employees));
+                localStorage.setItem('payments_premium_2026', JSON.stringify(payments));
+                console.log(`💾 데이터 저장 성공: 직원 ${employees.length}명, 급여 ${payments.length}건`);
+                return true;
+            } catch (error) {
+                console.error('❌ 데이터 저장 실패:', error);
+                if (error.name === 'QuotaExceededError') {
+                    showToast('error', '저장 실패', 'LocalStorage 용량 초과! 데이터를 내보내기 하세요.');
+                } else {
+                    showToast('error', '저장 실패', '데이터 저장 중 오류 발생');
+                }
+                return false;
+            }
         }
 
         function createSampleData() {
@@ -1635,11 +1677,24 @@
 
         function openEmployeeModal(empId = null) {
             const modal = document.getElementById('employeeModal');
+            
+            // ✅ 항상 폼 초기화부터 시작 (깨끗한 상태)
+            document.getElementById('employeeForm').reset();
+            document.getElementById('employeeId').value = '';
+            document.getElementById('photoPreview').src = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('paymentPreviewSection').style.display = 'none';
+            document.getElementById('workHoursPreview').value = '';
+            
             if (empId) {
                 const emp = employees.find(e => e.id === empId);
-                if (!emp) return;
+                if (!emp) {
+                    console.error(`❌ 직원을 찾을 수 없음: ${empId}`);
+                    return;
+                }
+                console.log(`📝 직원 모달 열기: ${emp.name} (ID: ${emp.id})`);
                 document.getElementById('modalTitle').textContent = '직원 정보 수정';
-                document.getElementById('employeeId').value = emp.id;
+                document.getElementById('employeeId').value = emp.id;  // ✅ ID 명확히 설정
                 document.getElementById('employeeNumber').value = emp.employeeNumber || '';
                 document.getElementById('employeeName').value = emp.name;
                 document.getElementById('employeeDepartment').value = emp.department;
@@ -1652,19 +1707,30 @@
                 document.getElementById('bankName').value = emp.bankName || '';
                 document.getElementById('accountNumber').value = emp.accountNumber || '';
                 document.getElementById('employeeNotes').value = emp.notes || '';
+                
+                // ✅ 마지막 저장된 근무시간 로드
+                if (emp.lastWorkHours !== null && emp.lastWorkHours !== undefined) {
+                    document.getElementById('workHoursPreview').value = emp.lastWorkHours;
+                    console.log(`⏰ 저장된 근무시간 로드: ${emp.lastWorkHours}시간`);
+                    // 급여 미리보기 자동 계산
+                    setTimeout(() => calculatePaymentPreview(), 100);
+                }
+                
                 if (emp.photo) {
                     document.getElementById('photoPreview').src = emp.photo;
                     document.getElementById('photoPreview').style.display = 'block';
                 }
             } else {
+                console.log('🆕 신규 직원 등록 모달');
                 document.getElementById('modalTitle').textContent = '직원 등록';
-                document.getElementById('employeeForm').reset();
-                document.getElementById('employeeId').value = ''; // Clear ID for new employee
-                document.getElementById('photoPreview').src = '';
-                document.getElementById('photoPreview').style.display = 'none';
+                // ✅ 이미 위에서 reset 했으므로 중복 제거
+                // document.getElementById('employeeForm').reset();
+                // document.getElementById('employeeId').value = '';
+                // document.getElementById('photoPreview').src = '';
+                // document.getElementById('photoPreview').style.display = 'none';
                 document.getElementById('hireDate').value = new Date().toISOString().split('T')[0];
-                document.getElementById('paymentPreviewSection').style.display = 'none';
-                document.getElementById('workHoursPreview').value = '';
+                // document.getElementById('paymentPreviewSection').style.display = 'none';
+                // document.getElementById('workHoursPreview').value = '';
             }
             modal.classList.add('active');
         }
@@ -1672,11 +1738,13 @@
         function closeEmployeeModal() {
             document.getElementById('employeeModal').classList.remove('active');
             document.getElementById('paymentPreviewSection').style.display = 'none';
-            document.getElementById('employeeForm').reset();
-            document.getElementById('employeeId').value = '';
-            document.getElementById('photoPreview').src = '';
-            document.getElementById('photoPreview').style.display = 'none';
-            document.getElementById('workHoursPreview').value = '';
+            // ✅ 폼 리셋은 하지 않음 - openEmployeeModal에서 처리
+            // document.getElementById('employeeForm').reset();  // 제거
+            // document.getElementById('employeeId').value = '';  // 제거
+            // ✅ 사진만 초기화 (비주얼만)
+            // document.getElementById('photoPreview').src = '';
+            // document.getElementById('photoPreview').style.display = 'none';
+            // document.getElementById('workHoursPreview').value = '';
         }
 
         function previewPhoto(e) {
@@ -1746,14 +1814,30 @@
         }
 
         function saveEmployeeOnly() {
+            console.log('🔵 saveEmployeeOnly() 호출됨');
+            
             const form = document.getElementById('employeeForm');
             if (!form.checkValidity()) {
+                console.warn('⚠️ 폼 검증 실패 - 필수 항목을 확인하세요');
                 form.reportValidity();
                 return;
             }
             
+            console.log('✅ 폼 검증 통과');
+            
+            // ✅ 기존 직원 ID 확인 (수정 모드인지 신규 등록인지 구분)
+            const existingId = document.getElementById('employeeId').value;
+            const isEdit = existingId && existingId.trim() !== '';
+            
+            console.log(`🔍 모드: ${isEdit ? '수정' : '신규 등록'}, ID: ${existingId || '없음'}`);
+            
+            // ✅ 근무시간 가져오기 (입력되어 있으면 저장)
+            const workHoursInput = document.getElementById('workHoursPreview').value;
+            const workHours = workHoursInput ? parseFloat(workHoursInput) : null;
+            console.log(`⏰ 입력된 근무시간: ${workHours !== null ? workHours + '시간' : '없음'}`);
+            
             const empData = {
-                id: document.getElementById('employeeId').value || `emp${Date.now()}`,
+                id: isEdit ? existingId : `emp${Date.now()}`,  // 수정 시 기존 ID 유지
                 employeeNumber: document.getElementById('employeeNumber').value || `E${Date.now().toString().slice(-4)}`,
                 name: document.getElementById('employeeName').value,
                 department: document.getElementById('employeeDepartment').value,
@@ -1766,20 +1850,29 @@
                 bankName: document.getElementById('bankName').value || '',
                 accountNumber: document.getElementById('accountNumber').value || '',
                 notes: document.getElementById('employeeNotes').value,
-                photo: (document.getElementById('photoPreview').src && document.getElementById('photoPreview').src !== window.location.href && document.getElementById('photoPreview').src !== '') ? document.getElementById('photoPreview').src : null
+                photo: (document.getElementById('photoPreview').src && document.getElementById('photoPreview').src !== window.location.href && document.getElementById('photoPreview').src !== '') ? document.getElementById('photoPreview').src : null,
+                lastWorkHours: workHours  // ✅ 마지막 입력한 근무시간 저장
             };
             
             const existingIdx = employees.findIndex(e => e.id === empData.id);
             
             if (existingIdx >= 0) {
-                employees[existingIdx] = empData;
-                showToast('success', '수정 완료', `${empData.name}님 정보 수정`);
+                // ✅ 수정 모드: 기존 데이터 업데이트 (ID 유지)
+                employees[existingIdx] = { ...employees[existingIdx], ...empData };
+                console.log(`✅ 직원 수정: ${empData.name} (ID: ${empData.id})${workHours !== null ? ', 근무시간: ' + workHours + '시간' : ''}`);
+                showToast('success', '✅ 수정 완료', `${empData.name}님 정보가 저장되었습니다${workHours !== null ? ' (근무시간: ' + workHours + 'h)' : ''}`);
             } else {
+                // ✅ 신규 등록 모드: 새 직원 추가
                 employees.push(empData);
-                showToast('success', '등록 완료', `${empData.name}님 등록`);
+                console.log(`✅ 직원 등록: ${empData.name} (ID: ${empData.id})${workHours !== null ? ', 근무시간: ' + workHours + '시간' : ''}`);
+                showToast('success', '✅ 등록 완료', `${empData.name}님이 등록되었습니다${workHours !== null ? ' (근무시간: ' + workHours + 'h)' : ''}`);
             }
             
-            saveData();
+            const saved = saveData();
+            if (!saved) {
+                console.error('❌ saveData() 실패 - 데이터가 저장되지 않았습니다');
+                return;  // 저장 실패 시 중단
+            }
             updateStatistics();
             renderEmployees();
             closeEmployeeModal();
@@ -1798,8 +1891,12 @@
                 return;
             }
             
+            // ✅ 기존 직원 ID 확인 (수정 모드인지 신규 등록인지 구분)
+            const existingId = document.getElementById('employeeId').value;
+            const isEdit = existingId && existingId.trim() !== '';
+            
             const empData = {
-                id: document.getElementById('employeeId').value || `emp${Date.now()}`,
+                id: isEdit ? existingId : `emp${Date.now()}`,  // 수정 시 기존 ID 유지
                 employeeNumber: document.getElementById('employeeNumber').value || `E${Date.now().toString().slice(-4)}`,
                 name: document.getElementById('employeeName').value,
                 department: document.getElementById('employeeDepartment').value,
@@ -1838,17 +1935,25 @@
             
             const existingIdx = employees.findIndex(e => e.id === empData.id);
             if (existingIdx >= 0) {
-                employees[existingIdx] = empData;
+                // ✅ 수정 모드: 기존 데이터 업데이트 (ID 유지)
+                employees[existingIdx] = { ...employees[existingIdx], ...empData };
+                console.log(`✅ 직원 수정 및 급여 지급: ${empData.name} (ID: ${empData.id})`);
             } else {
+                // ✅ 신규 등록 모드: 새 직원 추가
                 employees.push(empData);
+                console.log(`✅ 신규 직원 등록 및 급여 지급: ${empData.name} (ID: ${empData.id})`);
             }
             
-            saveData();
+            const saved = saveData();
+            if (!saved) {
+                console.error('❌ saveData() 실패 - 급여 데이터가 저장되지 않았습니다');
+                return;  // 저장 실패 시 중단
+            }
             updateStatistics();
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             closeEmployeeModal();
             showToast('success', '급여 지급 완료', `${empData.name}님 ${formatCurrency(netPay)}원 지급`);
         }
@@ -1878,7 +1983,7 @@
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             showToast('success', '삭제 완료', `${emp.name}님 삭제`);
         }
 
@@ -1929,7 +2034,7 @@
             updateAlertBanner();
             renderEmployees();
             renderPayments();
-            // initializeCharts(); // DISABLED FOR STABILITY
+            initializeCharts(); // ✅ 차트 활성화 2026-03-14
             showToast('success', '삭제 완료', '급여 내역 삭제');
         }
 
@@ -1946,7 +2051,7 @@
                 
                 // Row 1: 제목 (B1:Z1 병합)
                 const data = [];
-                data.push(['', `${monthStr} 직원급여 지급대장`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+                data.push(['', `🏢 초정 육전밀면 갈비탕 전문점 | ${monthStr} 직원급여 지급대장`, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
                 
                 // Row 2-3: 빈 줄 (A2:Z3 병합)
                 data.push(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
@@ -2013,6 +2118,9 @@
                     const totalDeductions = insurance.totalDeductions;
                     const subtotal = pay.basePay; // 기본급 소계
                     
+                    // 행 번호 (수식에서 사용)
+                    const excelRow = rowIndex + 1; // Excel은 1부터 시작
+                    
                     data.push([
                         '', // A
                         emp.employeeNumber || rowIndex - 6, // B: 사원번호
@@ -2029,17 +2137,17 @@
                         0, // M: 상여
                         0, // N: 연장근로수당
                         0, // O: 주휴수당
-                        subtotal, // P: 소계 (=L+M+N+O)
-                        insurance.healthInsurance, // Q: 건강보험
-                        insurance.longTermCare, // R: 장기요양보험
-                        insurance.nationalPension, // S: 국민연금
-                        insurance.employmentInsurance, // T: 고용보험
+                        { f: `SUM(L${excelRow}:O${excelRow})` }, // P: 소계 (=SUM(L:O))
+                        { f: `ROUNDDOWN(SUM(L${excelRow}:O${excelRow})*3.545%,-1)` }, // Q: 건강보험
+                        { f: `ROUNDDOWN(Q${excelRow}*12.81%,-1)` }, // R: 장기요양보험
+                        { f: `ROUND(SUM(L${excelRow}:O${excelRow})*4.5%,-1)` }, // S: 국민연금
+                        { f: `ROUND(SUM(L${excelRow}:O${excelRow})*0.9%,-1)` }, // T: 고용보험
                         0, // U: 갑근세
-                        0, // V: 주민세
+                        { f: `ROUNDDOWN(U${excelRow}*10%,-1)` }, // V: 주민세
                         0, // W: 가지급금
                         0, // X: 기타
-                        totalDeductions, // Y: 소계 (=Q+R+S+T+U+V+W+X)
-                        pay.netPay || 0 // Z: 실지급액 (=P-Y)
+                        { f: `SUM(Q${excelRow}:X${excelRow})` }, // Y: 공제 소계
+                        { f: `P${excelRow}-Y${excelRow}` } // Z: 실지급액 (=P-Y)
                     ]);
                     rowIndex++;
                 });
@@ -2265,16 +2373,16 @@
                 htmlContent += '</style>';
                 htmlContent += '</head><body>';
                 
+                // ✅ 헤더는 한 번만 출력 (PDF 이중 출력 수정)
+                htmlContent += '<div class="header">';
+                htmlContent += '<h1>초정 육전밀면 갈비탕 전문점</h1>';
+                htmlContent += `<p>${currentMonth} 급여명세서</p>`;
+                htmlContent += `<p>발행일: ${new Date().toLocaleDateString('ko-KR')}</p>`;
+                htmlContent += '</div>';
+                
                 monthPayments.forEach((p, idx) => {
                     const emp = employees.find(e => e.id === p.employeeId);
                     if (!emp) return;
-                    
-                    // 각 명세서마다 헤더 추가
-                    htmlContent += '<div class="header">';
-                    htmlContent += '<h1>초정 육전밀면 갈비탕 전문점</h1>';
-                    htmlContent += `<p>${currentMonth} 급여명세서</p>`;
-                    htmlContent += `<p>발행일: ${new Date().toLocaleDateString('ko-KR')}</p>`;
-                    htmlContent += '</div>';
                     
                     const insurance = calculate2026SocialInsurance(p.basePay, emp.employmentType);
                     
