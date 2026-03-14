@@ -1707,6 +1707,15 @@
                 document.getElementById('bankName').value = emp.bankName || '';
                 document.getElementById('accountNumber').value = emp.accountNumber || '';
                 document.getElementById('employeeNotes').value = emp.notes || '';
+                
+                // ✅ 마지막 저장된 근무시간 로드
+                if (emp.lastWorkHours !== null && emp.lastWorkHours !== undefined) {
+                    document.getElementById('workHoursPreview').value = emp.lastWorkHours;
+                    console.log(`⏰ 저장된 근무시간 로드: ${emp.lastWorkHours}시간`);
+                    // 급여 미리보기 자동 계산
+                    setTimeout(() => calculatePaymentPreview(), 100);
+                }
+                
                 if (emp.photo) {
                     document.getElementById('photoPreview').src = emp.photo;
                     document.getElementById('photoPreview').style.display = 'block';
@@ -1822,6 +1831,11 @@
             
             console.log(`🔍 모드: ${isEdit ? '수정' : '신규 등록'}, ID: ${existingId || '없음'}`);
             
+            // ✅ 근무시간 가져오기 (입력되어 있으면 저장)
+            const workHoursInput = document.getElementById('workHoursPreview').value;
+            const workHours = workHoursInput ? parseFloat(workHoursInput) : null;
+            console.log(`⏰ 입력된 근무시간: ${workHours !== null ? workHours + '시간' : '없음'}`);
+            
             const empData = {
                 id: isEdit ? existingId : `emp${Date.now()}`,  // 수정 시 기존 ID 유지
                 employeeNumber: document.getElementById('employeeNumber').value || `E${Date.now().toString().slice(-4)}`,
@@ -1836,7 +1850,8 @@
                 bankName: document.getElementById('bankName').value || '',
                 accountNumber: document.getElementById('accountNumber').value || '',
                 notes: document.getElementById('employeeNotes').value,
-                photo: (document.getElementById('photoPreview').src && document.getElementById('photoPreview').src !== window.location.href && document.getElementById('photoPreview').src !== '') ? document.getElementById('photoPreview').src : null
+                photo: (document.getElementById('photoPreview').src && document.getElementById('photoPreview').src !== window.location.href && document.getElementById('photoPreview').src !== '') ? document.getElementById('photoPreview').src : null,
+                lastWorkHours: workHours  // ✅ 마지막 입력한 근무시간 저장
             };
             
             const existingIdx = employees.findIndex(e => e.id === empData.id);
@@ -1844,13 +1859,13 @@
             if (existingIdx >= 0) {
                 // ✅ 수정 모드: 기존 데이터 업데이트 (ID 유지)
                 employees[existingIdx] = { ...employees[existingIdx], ...empData };
-                console.log(`✅ 직원 수정: ${empData.name} (ID: ${empData.id})`);
-                showToast('success', '✅ 수정 완료', `${empData.name}님 정보가 저장되었습니다`);
+                console.log(`✅ 직원 수정: ${empData.name} (ID: ${empData.id})${workHours !== null ? ', 근무시간: ' + workHours + '시간' : ''}`);
+                showToast('success', '✅ 수정 완료', `${empData.name}님 정보가 저장되었습니다${workHours !== null ? ' (근무시간: ' + workHours + 'h)' : ''}`);
             } else {
                 // ✅ 신규 등록 모드: 새 직원 추가
                 employees.push(empData);
-                console.log(`✅ 직원 등록: ${empData.name} (ID: ${empData.id})`);
-                showToast('success', '✅ 등록 완료', `${empData.name}님이 등록되었습니다`);
+                console.log(`✅ 직원 등록: ${empData.name} (ID: ${empData.id})${workHours !== null ? ', 근무시간: ' + workHours + '시간' : ''}`);
+                showToast('success', '✅ 등록 완료', `${empData.name}님이 등록되었습니다${workHours !== null ? ' (근무시간: ' + workHours + 'h)' : ''}`);
             }
             
             const saved = saveData();
